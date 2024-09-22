@@ -6,7 +6,9 @@ set(CMAKE_CXX_STANDARD 20)
 # Manually specify source files
 set(SRC_FILES
     main.cpp
-    # Add other source files here
+        vm/virt16.h
+        vm/virt16.cpp
+        # Add other source files here
 )
 
 # Manually specify imgui source files
