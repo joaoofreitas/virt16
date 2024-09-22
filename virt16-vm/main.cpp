@@ -7,6 +7,7 @@
 #include <GLES2/gl2.h>
 #endif
 #include <string>
+#include <sstream>
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
 
 // [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
@@ -142,7 +143,9 @@ int main(int, char **) {
                     // Create header row
                     ImGui::TableSetupColumn("Address");
                     for (int col = 0; col < 16; col++) {
-                        ImGui::TableSetupColumn(std::to_string(col).c_str());
+                        std::stringstream ss;
+                        ss << std::hex << col;
+                        ImGui::TableSetupColumn(ss.str().c_str());
                     }
                     ImGui::TableHeadersRow();
 
@@ -189,8 +192,7 @@ int main(int, char **) {
 
                 // Panel on right side
                 ImGui::BeginChild("Register Settings", ImVec2(200, 0), true);
-                ImGui::Text("Register Status");
-
+                ImGui::Text("Control Panel");
                 // Button to step, reset, run, reset
                 if (ImGui::Button("Step")) {
                     // Step
@@ -210,6 +212,9 @@ int main(int, char **) {
 
                 // Add a separator
                 ImGui::Separator();
+                ImGui::Text("Register Status");
+
+
 
                 ImGui::EndChild();
 
