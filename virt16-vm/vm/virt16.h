@@ -5,7 +5,7 @@
 #ifndef VIRT16_H
 #define VIRT16_H
 
-#define MEMORY_SIZE 16384
+#define MEMORY_SIZE 65536
 
 namespace Virt16 {
     enum Registers {
@@ -79,9 +79,9 @@ namespace Virt16 {
 
         void setDisp(unsigned short value);
 
-        static void step();
+        void step();
 
-        static void load_program(const char *program);
+        void load_program(const char *program) noexcept;
 
         ~virt16();
     };

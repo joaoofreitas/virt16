@@ -8,7 +8,8 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include <stdio.h>
+#include <cstdio>
+#include <iostream>
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
 
 #include "vm/virt16.h"
@@ -130,6 +131,31 @@ int main(int, char **) {
         ImGui::SetWindowPos(ImVec2(0, 0));
 
         if (ImGui::BeginTabBar("MainTabBar")) {
+            if (ImGui::BeginTabItem("Load ROM")) {
+                // Add button for file picking and present the selected file and load button
+                static char file_path[256] = "";
+                ImGui::InputText("ROM File Path", file_path, sizeof(file_path));
+                if (ImGui::Button("Load ROM")) {
+                    if (strlen(file_path) > 0) {
+                        try {
+                            vm->load_program(file_path);
+                        } catch ([[maybe_unused]] std::runtime_error &e) {
+                            ImGui::Text("Error loading file");
+                        } catch (...) {
+                            ImGui::Text("Unknown error loading file");
+                        }
+                    }
+                }
+                if (file_path[0] == '\0') {
+                    ImGui::Text("No file selected");
+                }
+
+                ImGui::SameLine();
+                ImGui::Text("%s", file_path);
+
+                ImGui::EndTabItem();
+            }
+
             if (ImGui::BeginTabItem("Memory Viewer")) {
                 // Label on left
                 ImGui::InputText("##AddressInput", address_input, sizeof(address_input),
@@ -171,7 +197,7 @@ int main(int, char **) {
                             // Align cell at the center
                             ImGui::SetCursorPosX(
                                 ImGui::GetCursorPosX() + (ImGui::GetColumnWidth() - ImGui::CalcTextSize(buf).x) / 2);
-                            int addr = row * 16 + col;
+                            const int addr = row * 16 + col;
                             char label[7];
                             snprintf(label, sizeof(label), "##%04X", addr);
                             if (ImGui::InputText(label,
@@ -275,13 +301,13 @@ int main(int, char **) {
                     for (int x = 0; x < 32; x++) {
                         //ImU32 color = IM_COL32(60, 60, 60, 60); // Set your desired color here
                         // Color will be vm->getMemory(vm->GetDisp() + y * 32 + x)
-                        ImU32 color = IM_COL32(0, 0, 0, 0);
+                        ImU32 color = IM_COL32(0xff, 0xff, 0xff, 0xff);
                         const unsigned short c = vm->getMemory(vm->getDisp() + y * 32 + x);
                         const unsigned char r = (c & 0xF000) >> 8;
                         const unsigned char g = (c & 0x0F00) >> 4;
                         const unsigned char b = (c & 0x00F0 >> 2);
                         const unsigned char a = (c & 0x000F);
-                        color = IM_COL32(r*8, g*8, b*8, 255);
+                        color = IM_COL32(r*17, g*17, b*0x17, 0xff);
 
                         ImVec2 p_min = ImVec2(canvas_pos.x + x * UPSCALE, canvas_pos.y + y * UPSCALE);
                         ImVec2 p_max = ImVec2(p_min.x + UPSCALE, p_min.y + UPSCALE);
@@ -296,7 +322,8 @@ int main(int, char **) {
                 //ImGui::Text("PC: 0x%04X", vm->getRegister(Virt16::PC));
                 //ImGui::Text("SP: 0x%04X", vm->getRegister(Virt16::SP));
                 ImGui::Text("Disp: 0x%04X", vm->getDisp());
-                ImGui::Text("TODO: Implement Getters and Setters \n for exclusive register and display \n here in a table");
+                ImGui::Text(
+                    "TODO: Implement Getters and Setters \n for exclusive register and display \n here in a table");
 
 
                 ImGui::EndChild();
@@ -320,10 +347,6 @@ int main(int, char **) {
 
                 ImGui::EndChild();
                 ImGui::EndChild();
-
-
-
-
 
 
                 ImGui::EndTabItem();
