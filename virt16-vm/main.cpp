@@ -27,6 +27,8 @@ static void glfw_error_callback(int error, const char *description) {
 
 #define WIDTH 1280
 #define HEIGHT 720
+#define ORIGINAL_DISPLAY_SIZE ImVec2(32, 32)
+#define UPSCALE 16
 #define SIZE ImVec2(WIDTH, HEIGHT)
 
 // Main code
@@ -165,8 +167,11 @@ int main(int, char **) {
                             // Align cell at the center
                             ImGui::SetCursorPosX(
                                 ImGui::GetCursorPosX() + (ImGui::GetColumnWidth() - ImGui::CalcTextSize(buf).x) / 2);
-
-                            if (ImGui::InputText(("##" + std::to_string(row) + std::to_string(col)).c_str(), buf,
+                            int addr = row * 16 + col;
+                            char label[7];
+                            snprintf(label, sizeof(label), "##%04X", addr);
+                            if (ImGui::InputText(label,
+                                                 buf,
                                                  sizeof(buf),
                                                  ImGuiInputTextFlags_CharsHexadecimal |
                                                  ImGuiInputTextFlags_CharsUppercase)) {
@@ -179,29 +184,58 @@ int main(int, char **) {
 
                 ImGui::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Display")) {
+            if (ImGui::BeginTabItem("Monitor")) {
                 // Canvas content
-                ImGui::Text("Display");
 
+                // Panel on right side
+                ImGui::BeginChild("Register Settings", ImVec2(200, 0), true);
+                ImGui::Text("Register Status");
+
+                // Button to step, reset, run, reset
+                if (ImGui::Button("Step")) {
+                    // Step
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Reset")) {
+                    // Reset
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Run")) {
+                    // Run
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Stop")) {
+                    // Stop
+                }
+
+                // Add a separator
+                ImGui::Separator();
+
+                ImGui::EndChild();
+
+                // Display on the right side of the Monitor tab
+                ImGui::SameLine();
+                ImGui::BeginChild("Display", ImVec2(0, 0), true);
+                // Create canvas in the center of the Display Panel
+                ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
+                // Center canvas position based on the size of the canvas
+                canvas_pos.x += (ImGui::GetContentRegionAvail().x - (32 * UPSCALE)) / 2;
+                canvas_pos.y += (ImGui::GetContentRegionAvail().y - (32 * UPSCALE)) / 2;
+
+
+                ImVec2 canvas_size = ImVec2(32 * UPSCALE, 32 * UPSCALE);
+                ImGui::InvisibleButton("canvas", canvas_size);
                 ImDrawList *draw_list = ImGui::GetWindowDrawList();
-                ImVec2 canvas_pos = ImGui::GetCursorScreenPos(); // Top-left of the canvas
-                ImVec2 canvas_size = ImVec2(256, 256); // Size of the canvas
-                // Align center
-                canvas_pos.x += (ImGui::GetWindowWidth() - canvas_size.x) * 0.5f;
-                canvas_pos.y += (ImGui::GetWindowHeight() - canvas_size.y) * 0.5f;
-
-
-
                 // Draw a 32x32 grid of colored rectangles
                 for (int y = 0; y < 32; y++) {
                     for (int x = 0; x < 32; x++) {
                         ImU32 color = IM_COL32(60, 60, 60, 60); // Set your desired color here
-                        ImVec2 p_min = ImVec2(canvas_pos.x + x * 8, canvas_pos.y + y * 8);
-                        ImVec2 p_max = ImVec2(p_min.x + 8, p_min.y + 8);
+                        ImVec2 p_min = ImVec2(canvas_pos.x + x * UPSCALE, canvas_pos.y + y * UPSCALE);
+                        ImVec2 p_max = ImVec2(p_min.x + UPSCALE, p_min.y + UPSCALE);
                         draw_list->AddRectFilled(p_min, p_max, color);
                     }
                 }
-
+                ImGui::EndChild();
                 ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
