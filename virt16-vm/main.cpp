@@ -2,7 +2,7 @@
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <GLES2/gl2.h>
 #endif
-#include <complex.h>
+#include <complex>
 #include <string>
 #include <sstream>
 #include "imgui.h"
@@ -104,7 +104,6 @@ int main(int, char **) {
 
     // Main loop
 #ifdef __EMSCRIPTEN__
-    // For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the imgui.ini file.
     // You may manually call LoadIniSettingsFromMemory() to load settings from your own storage.
     io.IniFilename = nullptr;
     EMSCRIPTEN_MAINLOOP_BEGIN
@@ -123,7 +122,7 @@ int main(int, char **) {
         ImGui::NewFrame();
 
 
-        ImGui::Begin("Virt16 - Virtual Machine", NULL,
+        ImGui::Begin("Virt16 - Virtual Machine", nullptr,
                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus);
         // Make it full size
@@ -134,19 +133,28 @@ int main(int, char **) {
             if (ImGui::BeginTabItem("Load ROM")) {
                 // Add button for file picking and present the selected file and load button
                 static char file_path[256] = "";
+
+                // Align center of the window
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (ImGui::GetContentRegionAvail().y - 100) / 2);
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 180);
+
                 ImGui::InputText("ROM File Path", file_path, sizeof(file_path));
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 180);
                 if (ImGui::Button("Load ROM")) {
                     if (strlen(file_path) > 0) {
                         try {
                             vm->load_program(file_path);
                         } catch ([[maybe_unused]] std::runtime_error &e) {
+                            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - 50) / 2);
                             ImGui::Text("Error loading file");
                         } catch (...) {
+                            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - 50) / 2);
                             ImGui::Text("Unknown error loading file");
                         }
                     }
                 }
                 if (file_path[0] == '\0') {
+                    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 180);
                     ImGui::Text("No file selected");
                 }
 
@@ -306,10 +314,11 @@ int main(int, char **) {
                         const unsigned char r = (c & 0xF000) >> 8;
                         const unsigned char g = (c & 0x0F00) >> 4;
                         const unsigned char b = (c & 0x00F0 >> 2);
-                        const unsigned char a = (c & 0x000F);
+                        //const unsigned char a = (c & 0x000F);
                         color = IM_COL32(r*17, g*17, b*0x17, 0xff);
 
-                        ImVec2 p_min = ImVec2(canvas_pos.x + x * UPSCALE, canvas_pos.y + y * UPSCALE);
+                        ImVec2 p_min = ImVec2(canvas_pos.x + static_cast<float>(x) * UPSCALE,
+                                              canvas_pos.y + static_cast<float>(y) * UPSCALE);
                         ImVec2 p_max = ImVec2(p_min.x + UPSCALE, p_min.y + UPSCALE);
                         draw_list->AddRectFilled(p_min, p_max, color);
                     }
