@@ -6,6 +6,7 @@
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <GLES2/gl2.h>
 #endif
+#include <string>
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
 
 // [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
@@ -20,14 +21,16 @@
 #include "../libs/emscripten/emscripten_mainloop_stub.h"
 #endif
 
-static void glfw_error_callback(int error, const char* description)
-{
+static void glfw_error_callback(int error, const char *description) {
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
 
+#define WIDTH 1280
+#define HEIGHT 720
+#define SIZE ImVec2(WIDTH, HEIGHT)
+
 // Main code
-int main(int, char**)
-{
+int main(int, char **) {
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
         return 1;
@@ -48,7 +51,7 @@ int main(int, char**)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
 #else
     // GL 3.0 + GLSL 130
-    const char* glsl_version = "#version 130";
+    const char *glsl_version = "#version 130";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
@@ -56,7 +59,7 @@ int main(int, char**)
 #endif
 
     // Create window with graphics context
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+OpenGL3 example", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Virt16 - Virtual Machine", nullptr, nullptr);
     if (window == nullptr)
         return 1;
     glfwMakeContextCurrent(window);
@@ -65,13 +68,17 @@ int main(int, char**)
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    ImGuiIO &io = ImGui::GetIO();
+    (void) io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
 
     // Setup Dear ImGui style
+    //ImGui::StyleColorsDark();
+    io.Fonts->Clear();
+    io.Fonts->Build();
+
     ImGui::StyleColorsDark();
-    //ImGui::StyleColorsLight();
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -80,27 +87,10 @@ int main(int, char**)
 #endif
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    // Load Fonts
-    // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-    // - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
-    // - If the file cannot be loaded, the function will return a nullptr. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
-    // - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
-    // - Use '#define IMGUI_ENABLE_FREETYPE' in your imconfig file to use Freetype for higher quality font rendering.
-    // - Read 'docs/FONTS.md' for more instructions and details.
-    // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
-    // - Our Emscripten build process allows embedding fonts to be accessible at runtime from the "fonts/" folder. See Makefile.emscripten for details.
-    //io.Fonts->AddFontDefault();
-    //io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\segoeui.ttf", 18.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
-    //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
-    //IM_ASSERT(font != nullptr);
-
-    // Our state
-    bool show_demo_window = true;
-    bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    uint16_t memory[16384] = {0};
+    static uint16_t goto_address = 0;
+    char address_input[4 + 1] = {0};
 
     // Main loop
 #ifdef __EMSCRIPTEN__
@@ -118,60 +108,114 @@ int main(int, char**)
         // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
         // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
         glfwPollEvents();
-        if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0)
-        {
+        if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0) {
             ImGui_ImplGlfw_Sleep(10);
             continue;
         }
-
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);
 
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-        {
-            static float f = 0.0f;
-            static int counter = 0;
+        ImGui::Begin("Virt16 - Virtual Machine", NULL,
+                     ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus);
+        // Make it full size
+        ImGui::SetWindowSize(SIZE);
+        ImGui::SetWindowPos(ImVec2(0, 0));
 
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+        if (ImGui::BeginTabBar("MainTabBar")) {
+            if (ImGui::BeginTabItem("Memory Viewer")) {
+                // Label on left
+                ImGui::InputText("##AddressInput", address_input, sizeof(address_input),
+                                 ImGuiInputTextFlags_CharsHexadecimal);
+                ImGui::SameLine();
+                if (ImGui::Button("Visit")) {
+                    goto_address = std::strtol(address_input, nullptr, 16);
+                }
 
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);
+                // Create a table with 16 columns
+                if (ImGui::BeginTable("Memory Dump", 17, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+                    // Create header row
+                    ImGui::TableSetupColumn("Address");
+                    for (int col = 0; col < 16; col++) {
+                        ImGui::TableSetupColumn(std::to_string(col).c_str());
+                    }
+                    ImGui::TableHeadersRow();
 
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+                    // Populate the table
+                    for (int row = 0; row < 16384 / 16; row++) {
+                        ImGui::TableNextRow();
+                        if (goto_address > 0 && row == goto_address / 16) {
+                            ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(255, 0, 0, 255));
+                            ImGui::SetScrollHereY();
+                            goto_address = 0;
+                        }
 
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
 
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-            ImGui::End();
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::Text("0x%04X", row * 16); // Address column
+
+                        for (int col = 0; col < 16; col++) {
+                            ImGui::TableSetColumnIndex(col + 1);
+                            char buf[9];
+                            snprintf(buf, sizeof(buf), "%04X", memory[row * 16 + col]);
+
+                            // Align cell at the center
+                            ImGui::SetCursorPosX(
+                                ImGui::GetCursorPosX() + (ImGui::GetColumnWidth() - ImGui::CalcTextSize(buf).x) / 2);
+
+                            if (ImGui::InputText(("##" + std::to_string(row) + std::to_string(col)).c_str(), buf,
+                                                 sizeof(buf),
+                                                 ImGuiInputTextFlags_CharsHexadecimal |
+                                                 ImGuiInputTextFlags_CharsUppercase)) {
+                                memory[row * 16 + col] = std::stoul(buf, nullptr, 16);
+                            }
+                        }
+                    }
+                    ImGui::EndTable();
+                }
+
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Display")) {
+                // Canvas content
+                ImGui::Text("Display");
+
+                ImDrawList *draw_list = ImGui::GetWindowDrawList();
+                ImVec2 canvas_pos = ImGui::GetCursorScreenPos(); // Top-left of the canvas
+                ImVec2 canvas_size = ImVec2(256, 256); // Size of the canvas
+                // Align center
+                canvas_pos.x += (ImGui::GetWindowWidth() - canvas_size.x) * 0.5f;
+                canvas_pos.y += (ImGui::GetWindowHeight() - canvas_size.y) * 0.5f;
+
+
+
+                // Draw a 32x32 grid of colored rectangles
+                for (int y = 0; y < 32; y++) {
+                    for (int x = 0; x < 32; x++) {
+                        ImU32 color = IM_COL32(60, 60, 60, 60); // Set your desired color here
+                        ImVec2 p_min = ImVec2(canvas_pos.x + x * 8, canvas_pos.y + y * 8);
+                        ImVec2 p_max = ImVec2(p_min.x + 8, p_min.y + 8);
+                        draw_list->AddRectFilled(p_min, p_max, color);
+                    }
+                }
+
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
         }
 
-        // 3. Show another simple window.
-        if (show_another_window)
-        {
-            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                show_another_window = false;
-            ImGui::End();
-        }
+        ImGui::End();
 
         // Rendering
         ImGui::Render();
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
-        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w,
+                     clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
