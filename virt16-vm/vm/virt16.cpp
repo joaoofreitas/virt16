@@ -65,6 +65,10 @@ namespace Virt16 {
         }
     }
 
+    unsigned short virt16::getDisp() const {
+        return disp;
+    }
+
     // Setters
     void virt16::setMemory(int index, unsigned short value) {
         if (index >= 0 && index < MEMORY_SIZE) {
@@ -92,6 +96,10 @@ namespace Virt16 {
                 break;
             default: break; // or throw an exception
         }
+    }
+
+    void virt16::setDisp(const unsigned short value) {
+        disp = value;
     }
 
     void virt16::step() {

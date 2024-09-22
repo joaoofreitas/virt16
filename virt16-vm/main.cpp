@@ -1,18 +1,19 @@
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
-#include <stdio.h>
 #define GL_SILENCE_DEPRECATION
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <GLES2/gl2.h>
 #endif
+#include <complex.h>
 #include <string>
 #include <sstream>
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+#include <stdio.h>
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
 
-// [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
-// To link with VS2010-era libraries, VS2015+ requires linking with legacy_stdio_definitions.lib, which we do using this pragma.
-// Your own project should not be affected, as you are likely to link with a newer binary of GLFW that is adequate for your version of Visual Studio.
+#include "vm/virt16.h"
+
+
 #if defined(_MSC_VER) && (_MSC_VER >= 1900) && !defined(IMGUI_DISABLE_WIN32_FUNCTIONS)
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
@@ -91,7 +92,12 @@ int main(int, char **) {
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-    uint16_t memory[16384] = {0};
+
+    // VM instance
+    auto *vm = new Virt16::virt16();
+    vm->setRegister(Virt16::DISP, 0x3000);
+
+    // UI Defs
     static uint16_t goto_address = 0;
     char address_input[4 + 1] = {0};
 
@@ -105,11 +111,6 @@ int main(int, char **) {
     while (!glfwWindowShouldClose(window))
 #endif
     {
-        // Poll and handle events (inputs, window resize, etc.)
-        // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-        // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-        // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-        // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
         glfwPollEvents();
         if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0) {
             ImGui_ImplGlfw_Sleep(10);
@@ -165,7 +166,7 @@ int main(int, char **) {
                         for (int col = 0; col < 16; col++) {
                             ImGui::TableSetColumnIndex(col + 1);
                             char buf[9];
-                            snprintf(buf, sizeof(buf), "%04X", memory[row * 16 + col]);
+                            snprintf(buf, sizeof(buf), "%04X", vm->getMemory(row * 16 + col));
 
                             // Align cell at the center
                             ImGui::SetCursorPosX(
@@ -178,7 +179,7 @@ int main(int, char **) {
                                                  sizeof(buf),
                                                  ImGuiInputTextFlags_CharsHexadecimal |
                                                  ImGuiInputTextFlags_CharsUppercase)) {
-                                memory[row * 16 + col] = std::stoul(buf, nullptr, 16);
+                                vm->setMemory(row * 16 + col, std::stoul(buf, nullptr, 16));
                             }
                         }
                     }
@@ -214,6 +215,45 @@ int main(int, char **) {
                 ImGui::Separator();
                 ImGui::Text("Register Status");
 
+
+                // Create Register Table
+                if (ImGui::BeginTable("Registers", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+                    // Create header row
+                    ImGui::TableSetupColumn("Register");
+                    ImGui::TableSetupColumn("Value");
+                    ImGui::TableHeadersRow();
+
+                    // Populate the table
+                    for (int row = 0; row < 24; row++) {
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::Text("R%d", row);
+                        ImGui::TableSetColumnIndex(1);
+                        char buf[9];
+                        snprintf(buf, sizeof(buf), "%04X", vm->getRegister(row));
+
+                        char reg_labels[8];
+                        snprintf(reg_labels, sizeof(reg_labels), "##R%d", row);
+                        if (ImGui::InputText(reg_labels, buf, sizeof(buf),
+                                             ImGuiInputTextFlags_CharsHexadecimal |
+                                             ImGuiInputTextFlags_CharsUppercase)) {
+                            vm->setRegister(row, std::stoul(buf, nullptr, 16));
+                        }
+                    }
+                    ImGui::EndTable();
+                }
+                ImGui::Separator();
+                // Display Flags
+                ImGui::Text("Flags");
+                ImGui::Text("Z: %d", vm->getFlag(Virt16::Z));
+                ImGui::SameLine();
+                ImGui::Text("G: %d", vm->getFlag(Virt16::G));
+                ImGui::SameLine();
+                ImGui::Text("L: %d", vm->getFlag(Virt16::L));
+                ImGui::SameLine();
+                ImGui::Text("E: %d", vm->getFlag(Virt16::E));
+
+                ImGui::Separator();
 
 
                 ImGui::EndChild();

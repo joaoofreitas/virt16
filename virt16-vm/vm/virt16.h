@@ -72,11 +72,15 @@ namespace Virt16 {
 
         [[nodiscard]] bool getFlag(int flag) const;
 
+        [[nodiscard]] unsigned short getDisp() const;
+
         void setMemory(int index, unsigned short value);
 
         void setRegister(int index, unsigned short value);
 
         void setFlag(int flag, bool value);
+
+        void setDisp(unsigned short value);
 
         static void step();
 
