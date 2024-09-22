@@ -223,7 +223,7 @@ int main(int, char **) {
                     ImGui::TableHeadersRow();
 
                     // Populate the table
-                    for (int row = 0; row < 24; row++) {
+                    for (int row = 0; row <= 15; row++) {
                         ImGui::TableNextRow();
                         ImGui::TableSetColumnIndex(0);
                         ImGui::Text("R%d", row);
@@ -273,7 +273,16 @@ int main(int, char **) {
                 // Draw a 32x32 grid of colored rectangles
                 for (int y = 0; y < 32; y++) {
                     for (int x = 0; x < 32; x++) {
-                        ImU32 color = IM_COL32(60, 60, 60, 60); // Set your desired color here
+                        //ImU32 color = IM_COL32(60, 60, 60, 60); // Set your desired color here
+                        // Color will be vm->getMemory(vm->GetDisp() + y * 32 + x)
+                        ImU32 color = IM_COL32(0, 0, 0, 0);
+                        const unsigned short c = vm->getMemory(vm->getDisp() + y * 32 + x);
+                        const unsigned char r = (c & 0xF000) >> 8;
+                        const unsigned char g = (c & 0x0F00) >> 4;
+                        const unsigned char b = (c & 0x00F0 >> 2);
+                        const unsigned char a = (c & 0x000F);
+                        color = IM_COL32(r*8, g*8, b*8, 255);
+
                         ImVec2 p_min = ImVec2(canvas_pos.x + x * UPSCALE, canvas_pos.y + y * UPSCALE);
                         ImVec2 p_max = ImVec2(p_min.x + UPSCALE, p_min.y + UPSCALE);
                         draw_list->AddRectFilled(p_min, p_max, color);
@@ -286,7 +295,7 @@ int main(int, char **) {
                 //ImGui::Text("Time: 0x%04X", vm->getRegister(Virt16::TIME));
                 //ImGui::Text("PC: 0x%04X", vm->getRegister(Virt16::PC));
                 //ImGui::Text("SP: 0x%04X", vm->getRegister(Virt16::SP));
-                //ImGui::Text("Disp: 0x%04X", vm->getRegister(Virt16::DISP));
+                ImGui::Text("Disp: 0x%04X", vm->getDisp());
                 ImGui::Text("TODO: Implement Getters and Setters \n for exclusive register and display \n here in a table");
 
 
