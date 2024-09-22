@@ -95,7 +95,7 @@ int main(int, char **) {
 
     // VM instance
     auto *vm = new Virt16::virt16();
-    vm->setRegister(Virt16::DISP, 0x3000);
+    vm->setDisp(0x3000);
 
     // UI Defs
     static uint16_t goto_address = 0;
@@ -193,7 +193,6 @@ int main(int, char **) {
 
                 // Panel on right side
                 ImGui::BeginChild("Register Settings", ImVec2(200, 0), true);
-                ImGui::Text("Control Panel");
                 // Button to step, reset, run, reset
                 if (ImGui::Button("Step")) {
                     // Step
@@ -260,7 +259,7 @@ int main(int, char **) {
 
                 // Display on the right side of the Monitor tab
                 ImGui::SameLine();
-                ImGui::BeginChild("Display", ImVec2(0, 0), true);
+                ImGui::BeginChild("Display", ImVec2(512, 0), true);
                 // Create canvas in the center of the Display Panel
                 ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
                 // Center canvas position based on the size of the canvas
@@ -281,6 +280,43 @@ int main(int, char **) {
                     }
                 }
                 ImGui::EndChild();
+                ImGui::SameLine();
+                ImGui::BeginChild("Exclusive Registers and Peripherals", ImVec2(0, 0), true);
+                ImGui::BeginChild("Exclusive Registers", ImVec2(300, 150), true);
+                //ImGui::Text("Time: 0x%04X", vm->getRegister(Virt16::TIME));
+                //ImGui::Text("PC: 0x%04X", vm->getRegister(Virt16::PC));
+                //ImGui::Text("SP: 0x%04X", vm->getRegister(Virt16::SP));
+                //ImGui::Text("Disp: 0x%04X", vm->getRegister(Virt16::DISP));
+                ImGui::Text("TODO: Implement Getters and Setters \n for exclusive register and display \n here in a table");
+
+
+                ImGui::EndChild();
+                ImGui::SameLine();
+                ImGui::BeginChild("Peripherals", ImVec2(0, 150), true);
+                // Draw Hex Keyboard
+                ImGui::Text("Hex Keyboard (P0)");
+                // We draw 16 buttons 4x4 And when one is pressed, we set the corresponding bit in the peripheral register P0
+                for (int i = 0; i < 16; i++) {
+                    if (i % 4 != 0) {
+                        ImGui::SameLine();
+                    }
+                    char label[3];
+                    snprintf(label, sizeof(label), "%X", i);
+                    if (ImGui::Button(label)) {
+                        // Set the bit in the peripheral register
+                        // To implement set peripheral
+                    }
+                }
+                ImGui::Text("(Action Not implemented!)");
+
+                ImGui::EndChild();
+                ImGui::EndChild();
+
+
+
+
+
+
                 ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
