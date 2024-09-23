@@ -117,43 +117,53 @@ TOTAL: 24 Registers
 | 0x00   | LOAD X, #IMM     | Load immediate value into X                      | LOAD R1, #0x0001      |
 | 0x01   | LOAD X, addr     | Load value from memory into X                    | LOAD R1, 0x0001       |
 | 0x02   | STORE addr, X    | Store value from X into memory                   | STORE 0x0001, R1      |
-| 0x03   | STORE addr, #IMM | Store immediate value into memory                | STORE 0x0001, #0x0001 |
-| 0x04   | MOV X, Y         | Move value from Y to X                           | MOV R1, R2            |
-| 0x05   | INC X            | Increment X by 1                                 | INC R1                |
-| 0x06   | DEC X            | Decrement X by 1                                 | DEC R1                |
-| 0x07   | ADD addr, X, Y   | Add X and Y and store in addr and addr + 1       | ADD 0x0001, R1, R2    |
-| 0x08   | SUB addr, X, Y   | Subtract X from Y and store in addr and addr + 1 | SUB 0x0001, R1, R2    |
-| 0x09   | MUL addr, X, Y   | Multiply X and Y and store in addr and addr + 1  | MUL 0x0001, R1, R2    |
-| 0x0A   | MOD addr, X, Y   | Modulus X by Y and store in X (Remainder)        | MOD R1, R2, R3        |
-| 0x0B   | AND X, Y, Z      | Bitwise AND Y and Z and store in X               | AND R1, R2, R3        |
-| 0x0C   | OR X, Y, Z       | Bitwise OR Y and Z and store in X                | OR R1, R2, R3         |
-| 0x0D   | XOR X, Y, Z      | Bitwise XOR Y and Z and store in X               | XOR R1, R2, R3        |
-| 0x0E   | NOT X, Y         | Bitwise NOT Y and store in X                     | NOT R1, R2            |
-| 0x0F   | SHL X, Y, Z      | Shift Y left by Z bits and store in X            | SHL R1, R2, R3        |
-| 0x10   | SHR X, Y, Z      | Shift Y right by Z bits and store in X           | SHR R1, R2, R3        |
-| 0x11   | CMP X, Y, Z      | Compare Y and Z and store in X                   | CMP R1, R2, R3        |
-| 0x12   | JMP addr         | Jump to address                                  | JMP 0x0001            |
-| 0x13   | JZ addr          | Jump if zero                                     | JZ 0x0001             |
-| 0x14   | JE addr          | Jump if equal                                    | JE 0x0001             |
-| 0x15   | JNE addr         | Jump if not equal                                | JNE 0x0001            |
-| 0x16   | JG addr          | Jump if greater                                  | JG 0x0001             |
-| 0x17   | JL addr          | Jump if less                                     | JL 0x0001             |
-| 0x18   | CALL addr        | Call subroutine                                  | CALL 0x0001           |
-| 0x19   | RET              | Return from subroutine                           | RET                   |
-| 0x1A   | PUSH X           | Push value from register onto stack              | PUSH R1               |
-| 0x1B   | POP X            | Pop value from stack into register               | POP R1                |
-| 0x1C   | HLT              | Halt the program                                 | HLT                   |
+| 0x03   | MOV X, Y         | Move value from Y to X                           | MOV R1, R2            |
+| 0x04   | INC X            | Increment X by 1                                 | INC R1                |
+| 0x05   | DEC X            | Decrement X by 1                                 | DEC R1                |
+| 0x06   | ADD addr, X, Y   | Add X and Y and store in addr and addr + 1       | ADD 0x0001, R1, R2    |
+| 0x07   | SUB addr, X, Y   | Subtract X from Y and store in addr and addr + 1 | SUB 0x0001, R1, R2    |
+| 0x08   | MUL addr, X, Y   | Multiply X and Y and store in addr and addr + 1  | MUL 0x0001, R1, R2    |
+| 0x09   | MOD addr, X, Y   | Modulus X by Y and store in X (Remainder)        | MOD R1, R2, R3        |
+| 0x0A   | AND X, Y, Z      | Bitwise AND Y and Z and store in X               | AND R1, R2, R3        |
+| 0x0B   | OR X, Y, Z       | Bitwise OR Y and Z and store in X                | OR R1, R2, R3         |
+| 0x0C   | XOR X, Y, Z      | Bitwise XOR Y and Z and store in X               | XOR R1, R2, R3        |
+| 0x0D   | NOT X, Y         | Bitwise NOT Y and store in X                     | NOT R1, R2            |
+| 0x0E   | SHL X, Y, Z      | Shift Y left by Z bits and store in X            | SHL R1, R2, R3        |
+| 0x0F   | SHR X, Y, Z      | Shift Y right by Z bits and store in X           | SHR R1, R2, R3        |
+| 0x10   | CMP X, Y, Z      | Compare Y and Z and store in X                   | CMP R1, R2, R3        |
+| 0x11   | JMP addr         | Jump to address                                  | JMP 0x0001            |
+| 0x12   | JZ addr          | Jump if zero                                     | JZ 0x0001             |
+| 0x13   | JE addr          | Jump if equal                                    | JE 0x0001             |
+| 0x14   | JNE addr         | Jump if not equal                                | JNE 0x0001            |
+| 0x15   | JG addr          | Jump if greater                                  | JG 0x0001             |
+| 0x16   | JL addr          | Jump if less                                     | JL 0x0001             |
+| 0x17   | CALL addr        | Call subroutine                                  | CALL 0x0001           |
+| 0x18   | RET              | Return from subroutine                           | RET                   |
+| 0x19   | PUSH X           | Push value from register onto stack              | PUSH R1               |
+| 0x1A   | POP X            | Pop value from stack into register               | POP R1                |
+| 0x1B   | HLT              | Halt the program                                 | HLT                   |
+| 0x1C   | NOP              | No Operation                                     | NOP                   |
 | 0x1D   | NOP              | No Operation                                     | NOP                   |
 | 0x1E   | NOP              | No Operation                                     | NOP                   |
 | 0x1F   | NOP              | No Operation                                     | NOP                   |
 
 TOTAL: 32 Instructions (0x00 - 0x1F) 5 bits
 
-Memory Preprocessor
+Preprocessor Directives
 .PLACE STRING addr "Hello, World!"; 
-.PLACE ARRAY addr 0x00, 0x01, 0x02, 0x03, 0x04, 
-0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 
-0x0D, 0x0E, 0x0F ;
+.PLACE ARRAY addr 0x00, 0x01, 0x02, 0x03, 0x04;
+
+Comments are allowed with `;` at the end of the line.
+
+@macro name, arg1, arg2, arg3
+    LOAD R1, arg1
+    LOAD R2, arg2
+    ADD R3, R1, R2
+    STORE arg3, R3
+
+@define name, value
+    LOAD R1, name ; Same as LOAD R1, value 
+
 
 ## Virtual Machine
 
