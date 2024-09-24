@@ -230,10 +230,12 @@ int main(int, char **) {
                 // Button to step, reset, run, reset
                 if (ImGui::Button("Step")) {
                     // Step
+                    vm->step();
                 }
                 ImGui::SameLine();
                 if (ImGui::Button("Reset")) {
                     // Reset
+                    vm->reset();
                 }
                 ImGui::SameLine();
                 if (ImGui::Button("Run")) {
@@ -256,23 +258,24 @@ int main(int, char **) {
                     ImGui::TableSetupColumn("Value");
                     ImGui::TableHeadersRow();
 
-                    // Populate the table
-                    for (int row = 0; row <= 15; row++) {
+                    for (int row = Virt16::R0; row <= Virt16::P4; row++) {
                         ImGui::TableNextRow();
                         ImGui::TableSetColumnIndex(0);
-                        ImGui::Text("R%d", row);
+                        ImGui::Text("%s", Virt16::register_names[row]);
                         ImGui::TableSetColumnIndex(1);
                         char buf[9];
-                        snprintf(buf, sizeof(buf), "%04X", vm->getRegister(row));
-
+                        snprintf(buf, sizeof(buf), "%04X", vm->getRegister(static_cast<Virt16::Registers>(row)));
                         char reg_labels[8];
-                        snprintf(reg_labels, sizeof(reg_labels), "##R%d", row);
+                        snprintf(reg_labels, sizeof(reg_labels), "##%s", Virt16::register_names[row]);
                         if (ImGui::InputText(reg_labels, buf, sizeof(buf),
                                              ImGuiInputTextFlags_CharsHexadecimal |
                                              ImGuiInputTextFlags_CharsUppercase)) {
-                            vm->setRegister(row, std::stoul(buf, nullptr, 16));
-                        }
+                            std::cout << "Setting Register " << Virt16::register_names[row] << " to " << buf << std::endl;
+                            vm->setRegister(static_cast<Virt16::Registers>(row), std::stoul(buf, nullptr, 16));
+                       }
                     }
+
+
                     ImGui::EndTable();
                 }
                 ImGui::Separator();

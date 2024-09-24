@@ -208,18 +208,20 @@ if __name__ == '__main__':
         if routine == '.main':
             allocated_routines[routine] = current_address
             current_address += len(routines[routine])
+            
     for routine in routines:
         if routine == '.main':
             continue
         allocated_routines[routine] = current_address
         current_address += len(routines[routine])
+    
+    # Now we assemble the instructions and store them in the program
+    for alloc_r in allocated_routines:
+        # Assemble the instructions
+        for instruction in routines[alloc_r]:
+            program.append(assemble_instruction(instruction))
+    
 
-    for routine in routines:
-        print(routine)
-        for instruction in routines[routine]:
-            print(instruction)
-            # Print the assembled instruction in 32-bit binary
-            print(f"{assemble_instruction(instruction):032b}")
     
     # Create build directory if it doesn't exist
     if not os.path.exists('./build'):
@@ -227,9 +229,9 @@ if __name__ == '__main__':
 
     # Write the program in binary to a simple file.
     with open(f"./build/{source_code_filename}.bin", 'wb') as f:
-        for routine in routines:
-            for instruction in routines[routine]:
-                f.write(assemble_instruction(instruction).to_bytes(4, byteorder='big'))
+        for instruction in program:
+            # Write the instruction as 32 bits (4 bytes), keep zeros at the beginning if needed
+            f.write(instruction.to_bytes(4, byteorder='big', signed=False))
     
     # Write Data of the build to a file
     with open(f"./build/{source_code_filename}.data", 'w') as f:
@@ -250,6 +252,13 @@ if __name__ == '__main__':
         f.write("\nDefinitions:\n")
         for definition in definitions:
             f.write(definition + ": " + str(definitions[definition]) + "\n")
+        f.write("\nProgram Bin:\n")
+        for instruction in program:
+            f.write(bin(instruction) + "\n")
+        f.write("\nProgram Hex:\n")
+        for instruction in program:
+            f.write(hex(instruction) + "\n")
+
 
     print("=========================================")
     print("\nRoutines:")
@@ -264,7 +273,6 @@ if __name__ == '__main__':
     for addr in memory:
         print(addr, memory[addr])
 
-
     print("\nMacros:")
     for macro in macros:
         print(macro, macros[macro])
@@ -273,3 +281,6 @@ if __name__ == '__main__':
     for definition in definitions:
         print(definition, definitions[definition])
 
+    print("Program:")
+    for instruction in program:
+        print(bin(instruction))
