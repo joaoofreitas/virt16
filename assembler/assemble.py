@@ -3,7 +3,7 @@
 |--------|------------------|--------------------------------------------------|-----------------------|
 | 0x00   | LOAD X, #IMM     | Load immediate value into X                      | LOAD R1, #0x0001      |
 | 0x01   | LOAD X, addr     | Load value from memory into X                    | LOAD R1, 0x0001       |
-| 0x02   | STORE addr, X    | Store value from X into memory                   | STORE 0x0001, R1      |
+| 0x02   | STORE X, Y       | Store value in Y into memory address in X        | STORE R1, R2          |
 | 0x03   | MOV X, Y         | Move value from Y to X                           | MOV R1, R2            |
 | 0x04   | INC X            | Increment X by 1                                 | INC R1                |
 | 0x05   | DEC X            | Decrement X by 1                                 | DEC R1                |
@@ -85,6 +85,56 @@ def assemble_instruction(instruction):
     if opcode in instructions:
         if opcode == 'LOAD':
             return parse_load(opcode, args)
+        elif opcode == 'STORE':
+            return parse_store(opcode, args)
+        elif opcode == 'MOV':
+            return parse_mov(opcode, args)
+        elif opcode == 'INC':
+            return parse_inc(opcode, args)
+        elif opcode == 'DEC':
+            return parse_dec(opcode, args)
+        elif opcode == 'ADD':
+            return parse_add(opcode, args)
+        elif opcode == 'SUB':
+            return parse_sub(opcode, args)
+        elif opcode == 'AND':
+            return parse_and(opcode, args)
+        elif opcode == 'OR':
+            return parse_or(opcode, args)
+        elif opcode == 'XOR':
+            return parse_xor(opcode, args)
+        elif opcode == 'NOT':
+            return parse_not(opcode, args)
+        elif opcode == 'SHL':
+            return parse_shl(opcode, args)
+        elif opcode == 'SHR':
+            return parse_shr(opcode, args)
+        elif opcode == 'CMP':
+            return parse_cmp(opcode, args)
+        elif opcode == 'JMP':
+            return parse_jmp(opcode, args)
+        elif opcode == 'JZ':
+            return parse_jz(opcode, args)
+        elif opcode == 'JE':
+            return parse_je(opcode, args)
+        elif opcode == 'JNE':
+            return parse_jne(opcode, args)
+        elif opcode == 'JG':
+            return parse_jg(opcode, args)
+        elif opcode == 'JL':
+            return parse_jl(opcode, args)
+        elif opcode == 'CALL':
+            return parse_call(opcode, args)
+        elif opcode == 'RET':
+            return parse_ret(opcode, args)
+        elif opcode == 'PUSH':
+            return parse_push(opcode, args)
+        elif opcode == 'POP':
+            return parse_pop(opcode, args)
+        elif opcode == 'HLT':
+            return parse_hlt(opcode, args)
+        elif opcode == 'NOP':
+            return parse_nop(opcode, args)
         else:
             print(f"Error: Unsupported instruction {opcode}")
             return 0

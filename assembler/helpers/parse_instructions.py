@@ -105,3 +105,391 @@ def parse_load(opcode : str, args) -> int:
                 else:
                     print(f"Error: Invalid arguments for LOAD instruction")
                     return 0
+
+def parse_store(opcode : str, args) -> int:
+    if len(args) != 2:
+        print(f"Error: Invalid number of arguments for STORE instruction")
+        return 0
+    else:
+        src, dest = args
+        src = src.strip(',').strip()
+        dest = dest.strip(',').strip()
+        # Store reg1, reg2, stores content of reg2 in the address in reg1
+        if src in registers and dest in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            src_reg = (registers[src] << 22) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 17) & 0xFFFFFFFF
+            return op | src_reg | dest_reg
+        else:
+            print(f"Error: Invalid arguments for STORE instruction")
+            return 0
+
+
+def parse_mov(opcode : str, args) -> int:
+    if len(args) != 2:
+        print(f"Error: Invalid number of arguments for MOV instruction")
+        return 0
+    else:
+        dest, src = args
+        dest = dest.strip(',').strip()
+        src = src.strip(',').strip()
+        if dest in registers and src in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            src_reg = (registers[src] << 17) & 0xFFFFFFFF
+            return op | dest_reg | src_reg
+        else:
+            print(f"Error: Invalid arguments for MOV instruction")
+            return 0
+
+def parse_inc(opcode : str, args) -> int:
+    if len(args) != 1:
+        print(f"Error: Invalid number of arguments for INC instruction")
+        return 0
+    else:
+        dest = args[0].strip(',').strip()
+        if dest in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            return op | dest_reg
+        else:
+            print(f"Error: Invalid arguments for INC instruction")
+            return 0
+
+def parse_dec(opcode : str, args) -> int:
+    if len(args) != 1:
+        print(f"Error: Invalid number of arguments for DEC instruction")
+        return 0
+    else:
+        dest = args[0].strip(',').strip()
+        if dest in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            return op | dest_reg
+        else:
+            print(f"Error: Invalid arguments for DEC instruction")
+            return 0
+
+def parse_add(opcode : str, args) -> int:
+    if len(args) != 3:
+        print(f"Error: Invalid number of arguments for ADD instruction")
+        return 0
+    else:
+        dest, op1, op2 = args
+        dest = dest.strip(',').strip()
+        op1 = op1.strip(',').strip()
+        op2 = op2.strip(',').strip()
+        
+        if dest in registers and op1 in registers and op2 in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            op1_reg = (registers[op1] << 17) & 0xFFFFFFFF
+            op2_reg = (registers[op2] << 12) & 0xFFFFFFFF
+            return op | dest_reg | op1_reg | op2_reg
+        else:
+            print(f"Error: Invalid arguments for ADD instruction")
+            return 0
+
+def parse_sub(opcode : str, args) -> int:
+    if len(args) != 3:
+        print(f"Error: Invalid number of arguments for SUB instruction")
+        return 0 
+    else:
+        dest, op1, op2 = args
+        dest = dest.strip(',').strip()
+        op1 = op1.strip(',').strip()
+        op2 = op2.strip(',').strip()
+        
+        if dest in registers and op1 in registers and op2 in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            op1_reg = (registers[op1] << 17) & 0xFFFFFFFF
+            op2_reg = (registers[op2] << 12) & 0xFFFFFFFF
+            return op | dest_reg | op1_reg | op2_reg
+        else:
+            print(f"Error: Invalid arguments for SUB instruction")
+            return 0
+
+
+def parse_and(opcode : str, args) -> int:
+    if len(args) != 3:
+        print(f"Error: Invalid number of arguments for AND instruction")
+        return 0
+    else:
+        dest, op1, op2 = args
+        dest = dest.strip(',').strip()
+        op1 = op1.strip(',').strip()
+        op2 = op2.strip(',').strip()
+        
+        if dest in registers and op1 in registers and op2 in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            op1_reg = (registers[op1] << 17) & 0xFFFFFFFF
+            op2_reg = (registers[op2] << 12) & 0xFFFFFFFF
+            return op | dest_reg | op1_reg | op2_reg
+        else:
+            print(f"Error: Invalid arguments for AND instruction")
+            return 0
+
+def parse_or(opcode : str, args) -> int:
+    if len(args) != 3:
+        print(f"Error: Invalid number of arguments for OR instruction")
+        return 0
+    else:
+        dest, op1, op2 = args
+        dest = dest.strip(',').strip()
+        op1 = op1.strip(',').strip()
+        op2 = op2.strip(',').strip()
+        
+        if dest in registers and op1 in registers and op2 in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            op1_reg = (registers[op1] << 17) & 0xFFFFFFFF
+            op2_reg = (registers[op2] << 12) & 0xFFFFFFFF
+            return op | dest_reg | op1_reg | op2_reg
+        else:
+            print(f"Error: Invalid arguments for OR instruction")
+            return 0
+
+def parse_xor(opcode : str, args) -> int:
+    if len(args) != 3:
+        print(f"Error: Invalid number of arguments for XOR instruction")
+        return 0
+    else:
+        dest, op1, op2 = args
+        dest = dest.strip(',').strip()
+        op1 = op1.strip(',').strip()
+        op2 = op2.strip(',').strip()
+        
+        if dest in registers and op1 in registers and op2 in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            op1_reg = (registers[op1] << 17) & 0xFFFFFFFF
+            op2_reg = (registers[op2] << 12) & 0xFFFFFFFF
+            return op | dest_reg | op1_reg | op2_reg
+        else:
+            print(f"Error: Invalid arguments for XOR instruction")
+            return 0
+
+def parse_not(opcode : str, args) -> int:
+    if len(args) != 2:
+        print(f"Error: Invalid number of arguments for NOT instruction")
+        return 0
+    else:
+        dest, src = args
+        dest = dest.strip(',').strip()
+        src = src.strip(',').strip()
+        if dest in registers and src in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            src_reg = (registers[src] << 17) & 0xFFFFFFFF
+            return op | dest_reg | src_reg
+        else:
+            print(f"Error: Invalid arguments for NOT instruction")
+            return 0
+
+def parse_shl(opcode : str, args) -> int:
+    if len(args) != 3:
+        print(f"Error: Invalid number of arguments for SHL instruction")
+        return 0
+    else:
+        dest, src, shift = args
+        dest = dest.strip(',').strip()
+        src = src.strip(',').strip()
+        shift = shift.strip(',').strip()
+        if dest in registers and src in registers and shift in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            src_reg = (registers[src] << 17) & 0xFFFFFFFF
+            shift_reg = (registers[shift] << 12) & 0xFFFFFFFF
+            return op | dest_reg | src_reg | shift_reg
+        else:
+            print(f"Error: Invalid arguments for SHL instruction")
+            return 0
+
+def parse_shr(opcode : str, args) -> int:
+    if len(args) != 3:
+        print(f"Error: Invalid number of arguments for SHR instruction")
+        return 0
+    else:
+        dest, src, shift = args
+        dest = dest.strip(',').strip()
+        src = src.strip(',').strip()
+        shift = shift.strip(',').strip()
+        if dest in registers and src in registers and shift in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            src_reg = (registers[src] << 17) & 0xFFFFFFFF
+            shift_reg = (registers[shift] << 12) & 0xFFFFFFFF
+            return op | dest_reg | src_reg | shift_reg
+        else:
+            print(f"Error: Invalid arguments for SHR instruction")
+            return 0
+
+def parse_cmp(opcode : str, args) -> int:
+    if len(args) != 2:
+        print(f"Error: Invalid number of arguments for CMP instruction")
+        return 0
+    else:
+        op1, op2 = args
+        op1 = op1.strip(',').strip()
+        op2 = op2.strip(',').strip()
+        if op1 in registers and op2 in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            op1_reg = (registers[op1] << 22) & 0xFFFFFFFF
+            op2_reg = (registers[op2] << 17) & 0xFFFFFFFF
+            return op | op1_reg | op2_reg
+        else:
+            print(f"Error: Invalid arguments for CMP instruction")
+            return 0
+
+def parse_jmp(opcode : str, args) -> int:
+    if len(args) != 1:
+        print(f"Error: Invalid number of arguments for JMP instruction")
+        return 0
+    else:
+        dest = args[0].strip(',').strip()
+        if dest in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            return op | dest_reg
+        else:
+            print(f"Error: Invalid arguments for JMP instruction")
+            return 0
+
+def parse_jz(opcode : str, args) -> int:
+    if len(args) != 1:
+        print(f"Error: Invalid number of arguments for JZ instruction")
+        return 0
+    else:
+        dest = args[0].strip(',').strip()
+        if dest in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            return op | dest_reg
+        else:
+            print(f"Error: Invalid arguments for JZ instruction")
+            return 0 
+
+def parse_je(opcode : str, args) -> int:
+    if len(args) != 1:
+        print(f"Error: Invalid number of arguments for JE instruction")
+        return 0
+    else:
+        dest = args[0].strip(',').strip()
+        if dest in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            return op | dest_reg
+        else:
+            print(f"Error: Invalid arguments for JE instruction")
+            return 0 
+
+def parse_jne(opcode : str, args) -> int:
+    if len(args) != 1:
+        print(f"Error: Invalid number of arguments for JNE instruction")
+        return 0
+    else:
+        dest = args[0].strip(',').strip()
+        if dest in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            return op | dest_reg
+        else:
+            print(f"Error: Invalid arguments for JNE instruction")
+            return 0 
+
+
+def parse_jg(opcode : str, args) -> int:
+    if len(args) != 1:
+        print(f"Error: Invalid number of arguments for JG instruction")
+        return 0
+    else:
+        dest = args[0].strip(',').strip()
+        if dest in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            return op | dest_reg
+        else:
+            print(f"Error: Invalid arguments for JG instruction")
+            return 0 
+
+def parse_jl(opcode : str, args) -> int:
+    if len(args) != 1:
+        print(f"Error: Invalid number of arguments for JL instruction")
+        return 0
+    else:
+        dest = args[0].strip(',').strip()
+        if dest in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            return op | dest_reg
+        else:
+            print(f"Error: Invalid arguments for JL instruction")
+            return 0 
+
+def parse_call(opcode : str, args) -> int:
+    if len(args) != 1:
+        print(f"Error: Invalid number of arguments for CALL instruction")
+        return 0
+    else:
+        dest = args[0].strip(',').strip()
+        if dest in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            return op | dest_reg
+        else:
+            print(f"Error: Invalid arguments for CALL instruction")
+            return 0 
+
+def parse_ret(opcode : str, args) -> int:
+    if len(args) != 0:
+        print(f"Error: Invalid number of arguments for RET instruction")
+        return 0
+    else:
+        op = (instructions[opcode] << 27) & 0xFFFFFFFF
+        return op
+
+def parse_push(opcode : str, args) -> int:
+    if len(args) != 1:
+        print(f"Error: Invalid number of arguments for PUSH instruction")
+        return 0
+    else:
+        src = args[0].strip(',').strip()
+        if src in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            src_reg = (registers[src] << 22) & 0xFFFFFFFF
+            return op | src_reg
+        else:
+            print(f"Error: Invalid arguments for PUSH instruction")
+            return 0
+
+def parse_pop(opcode : str, args) -> int:
+    if len(args) != 1:
+        print(f"Error: Invalid number of arguments for POP instruction")
+        return 0
+    else:
+        dest = args[0].strip(',').strip()
+        if dest in registers:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+            return op | dest_reg
+        else:
+            print(f"Error: Invalid arguments for POP instruction")
+            return 0
+
+def parse_hlt(opcode : str, args) -> int:
+    if len(args) != 0:
+        print(f"Error: Invalid number of arguments for HLT instruction")
+        return 0
+    else:
+        op = (instructions[opcode] << 27) & 0xFFFFFFFF
+        return op
+
+def parse_nop(opcode : str, args) -> int:
+    if len(args) != 0:
+        print(f"Error: Invalid number of arguments for NOP instruction")
+        return 0
+    else:
+        op = (instructions[opcode] << 27) & 0xFFFFFFFF
+        return op
