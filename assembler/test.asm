@@ -24,7 +24,7 @@
 @endmacro
 
 .CLEAR_SCREEN:
-    LOAD A, 0xFF; Load 255 into A
+    LOAD A, #0xFF; Load 255 into A
     LOAD R0, DISP ; Load the display address into R0
     STORE R0, %ZERO ; Store 0 into the display address
     INC R0 ; Increment R0
