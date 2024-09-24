@@ -116,7 +116,6 @@ registers = {
     'R13': 0x0D,
     'R14': 0x0E,
     'R15': 0x0F,
-
     'SP': 0x10,
     'DISP': 0x11,
     'TIME': 0x12,
@@ -265,7 +264,63 @@ def encapsulate_routine(lines):
                 body.append(line.strip())
             routines[name] = body
 
+def assemble_instruction(instruction):
+    # Split the instruction into parts
+    parts = instruction.split()
+    opcode = parts[0]  # The first part is the opcode (e.g., 'LOAD')
+    args = []
+    
+    if len(parts) > 1:
+        args = parts[1:]  # Remaining parts are the arguments
+    
+    # Check if the instruction is valid
+    if opcode in instructions:
+        if opcode == 'LOAD':
+            if len(args) != 2:
+                print(f"Error: Invalid number of arguments for LOAD instruction")
+                return 0
+            else:
+                dest, src = args
+                dest = dest.strip(',').strip()
+                src = src.strip(',').strip()
+                # Case 1: LOAD R1, R2 (Register-to-Register)
+                if dest in registers and src in registers:
+                    # Opcode (5 bits), dest register (5 bits), src register (5 bits), rest are 0 until 32 bits
+                    op = (instructions[opcode] << 27) & 0xFFFFFFFF  # Shift the opcode to the first 5 bits, ensuring 32-bit
+                    dest_reg = (registers[dest] << 22) & 0xFFFFFFFF  # Destination register next 5 bits
+                    src_reg = (registers[src] << 17) & 0xFFFFFFFF    # Source register next 5 bits
+                    return op | dest_reg | src_reg  # Combine opcode, dest, and source into a 32-bit result
+                # Case 2: LOAD R1, #IMM (Register-to-Immediate)
+                elif dest in registers and src.startswith('#'):
+                    try:
+                        # Check if its in hexa or decimal
+                        if src.startswith('#0x'):
+                            imm_value = int(src[1:], 16)
+                        elif src.startswith('#0b'):
+                            imm_value = int(src[1:], 2)
+                        else:
+                            imm_value = int(src[1:])
 
+                        if imm_value < 0 or imm_value > 0xFFFF:  # Ensure it's within 16-bit range
+                            print(f"Error: Immediate value {imm_value} out of range (must be 0 to 65535)")
+                            return 0
+                        # Opcode (5 bits), dest register (5 bits), immediate value (16 bits), rest is 0
+                        op = (instructions[opcode] << 27) & 0xFFFFFFFF  # Opcode 5 bits
+                        dest_reg = (registers[dest] << 22) & 0xFFFFFFFF  # Destination register next 5 bits
+                        imm_value = imm_value & 0xFFFF  # Mask the immediate value to 16 bits
+                        return op | dest_reg | imm_value  # Combine opcode, dest, and immediate into a 32-bit result
+                    except ValueError:
+                        print(f"Error: Invalid immediate value {src}")
+                        return 0
+                else:
+                    print(f"Error: Invalid arguments for LOAD instruction")
+                    return 0
+        else:
+            print(f"Error: Unsupported instruction {opcode}")
+            return 0
+    else:
+        print(f"Error: Unknown opcode {opcode}")
+        return 0
 
 
 if __name__ == '__main__':
@@ -321,6 +376,15 @@ if __name__ == '__main__':
     #for line in assembled_program:
     #    print(line)
 
+    for routine in routines:
+        print(routine)
+        for instruction in routines[routine]:
+            print(instruction)
+            # Print the assembled instruction in 32-bit binary
+            print(f"{assemble_instruction(instruction):032b}")
+            
+
+    print("=========================================")
     print("\nRoutines:")
     for routine in routines:
         print(routine, routines[routine])
