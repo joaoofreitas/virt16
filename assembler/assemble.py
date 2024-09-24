@@ -64,11 +64,13 @@ RoutineName:        ; Label of the routine
 '''
 
 import sys
+import os
 # Helpers folder contains cleaners.py with functions
 from helpers.parser import *
 from helpers.store import *
 from helpers.parse_instructions import *
 
+source_code_filename = "program.asm"
 program = []
 current_address = 0x0000
 
@@ -149,6 +151,11 @@ if __name__ == '__main__':
         print("Usage: python assembler.py <source.asm>")
         sys.exit(1)
 
+    # Remove extension from the filename
+    source_code_filename = sys.argv[1]
+    source_code_filename = source_code_filename.split('.')[0]
+
+
     with open(sys.argv[1], 'r') as f:
         lines = f.readlines()
     print("Original Program:")
@@ -213,7 +220,36 @@ if __name__ == '__main__':
             print(instruction)
             # Print the assembled instruction in 32-bit binary
             print(f"{assemble_instruction(instruction):032b}")
-            
+    
+    # Create build directory if it doesn't exist
+    if not os.path.exists('./build'):
+        os.makedirs('./build')
+
+    # Write the program in binary to a simple file.
+    with open(f"./build/{source_code_filename}.bin", 'wb') as f:
+        for routine in routines:
+            for instruction in routines[routine]:
+                f.write(assemble_instruction(instruction).to_bytes(4, byteorder='big'))
+    
+    # Write Data of the build to a file
+    with open(f"./build/{source_code_filename}.data", 'w') as f:
+        f.write("Routines:\n")
+        for routine in routines:
+            f.write(routine + "\n")
+            for instruction in routines[routine]:
+                f.write(instruction + "\n")
+        f.write("\nAllocated Routines:\n")
+        for routine in allocated_routines:
+            f.write(routine + ": " + hex(allocated_routines[routine]) + "\n")
+        f.write("\nMemory Contents:\n")
+        for addr in memory:
+            f.write(addr + ": " + str(memory[addr]) + "\n")
+        f.write("\nMacros:\n")
+        for macro in macros:
+            f.write(macro + ": " + str(macros[macro]) + "\n")
+        f.write("\nDefinitions:\n")
+        for definition in definitions:
+            f.write(definition + ": " + str(definitions[definition]) + "\n")
 
     print("=========================================")
     print("\nRoutines:")
