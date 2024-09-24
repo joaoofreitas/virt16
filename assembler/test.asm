@@ -32,7 +32,7 @@
     INC R0 ; Increment R0
     DEC A ; Decrement A
     CMP A, R1 ; Compare A to 0
-    JNE CLEAR_SCREEN ; Remove this cause CLEAR_SCREEN is not a routine
+    JNE .CLEAR_SCREEN ; Remove this cause CLEAR_SCREEN is not a routine
 
     @POP_CLEAR_SCREEN ; POP the registers for CLEAR_SCREEN and Return
     
@@ -41,6 +41,6 @@
     LOAD R1, %ONE ; Load 1 into R1
 
     @PUSH_CLEAR_SCREEN ; Push the registers for CLEAR_SCREEN
-    CALL CLEAR_SCREEN
+    CALL .CLEAR_SCREEN
     @ADD %DE ; Add 0xDE to R1
     HLT ; Halt the program

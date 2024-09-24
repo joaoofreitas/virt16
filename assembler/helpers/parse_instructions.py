@@ -65,6 +65,8 @@ directives = {
     '@define': 0x22,
 }
 
+allocated_routines = {}
+
 def parse_load(opcode : str, args) -> int:
             if len(args) != 2:
                 print(f"Error: Invalid number of arguments for LOAD instruction")
@@ -349,13 +351,14 @@ def parse_jmp(opcode : str, args) -> int:
         return 0
     else:
         dest = args[0].strip(',').strip()
-        if dest in registers:
+        if dest in allocated_routines:
             op = (instructions[opcode] << 27) & 0xFFFFFFFF
-            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
-            return op | dest_reg
+            dest_addr = (allocated_routines[dest] << 22) & 0xFFFFFFFF
+            return op | dest_addr
         else:
             print(f"Error: Invalid arguments for JMP instruction")
             return 0
+
 
 def parse_jz(opcode : str, args) -> int:
     if len(args) != 1:
@@ -363,13 +366,13 @@ def parse_jz(opcode : str, args) -> int:
         return 0
     else:
         dest = args[0].strip(',').strip()
-        if dest in registers:
+        if dest in allocated_routines:
             op = (instructions[opcode] << 27) & 0xFFFFFFFF
-            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
-            return op | dest_reg
+            dest_addr = (allocated_routines[dest] << 22) & 0xFFFFFFFF
+            return op | dest_addr
         else:
             print(f"Error: Invalid arguments for JZ instruction")
-            return 0 
+            return 0
 
 def parse_je(opcode : str, args) -> int:
     if len(args) != 1:
@@ -377,13 +380,13 @@ def parse_je(opcode : str, args) -> int:
         return 0
     else:
         dest = args[0].strip(',').strip()
-        if dest in registers:
+        if dest in allocated_routines: 
             op = (instructions[opcode] << 27) & 0xFFFFFFFF
-            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
-            return op | dest_reg
+            dest_addr = (allocated_routines[dest] << 22) & 0xFFFFFFFF
+            return op | dest_addr
         else:
             print(f"Error: Invalid arguments for JE instruction")
-            return 0 
+            return 0
 
 def parse_jne(opcode : str, args) -> int:
     if len(args) != 1:
@@ -391,14 +394,13 @@ def parse_jne(opcode : str, args) -> int:
         return 0
     else:
         dest = args[0].strip(',').strip()
-        if dest in registers:
+        if dest in allocated_routines:
             op = (instructions[opcode] << 27) & 0xFFFFFFFF
-            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
-            return op | dest_reg
+            dest_addr = (allocated_routines[dest] << 22) & 0xFFFFFFFF
+            return op | dest_addr
         else:
             print(f"Error: Invalid arguments for JNE instruction")
-            return 0 
-
+            return 0
 
 def parse_jg(opcode : str, args) -> int:
     if len(args) != 1:
@@ -406,13 +408,13 @@ def parse_jg(opcode : str, args) -> int:
         return 0
     else:
         dest = args[0].strip(',').strip()
-        if dest in registers:
+        if dest in allocated_routines:
             op = (instructions[opcode] << 27) & 0xFFFFFFFF
-            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
-            return op | dest_reg
+            dest_addr = (allocated_routines[dest] << 22) & 0xFFFFFFFF
+            return op | dest_addr
         else:
             print(f"Error: Invalid arguments for JG instruction")
-            return 0 
+            return 0
 
 def parse_jl(opcode : str, args) -> int:
     if len(args) != 1:
@@ -420,13 +422,13 @@ def parse_jl(opcode : str, args) -> int:
         return 0
     else:
         dest = args[0].strip(',').strip()
-        if dest in registers:
+        if dest in allocated_routines:
             op = (instructions[opcode] << 27) & 0xFFFFFFFF
-            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
-            return op | dest_reg
+            dest_addr = (allocated_routines[dest] << 22) & 0xFFFFFFFF
+            return op | dest_addr
         else:
             print(f"Error: Invalid arguments for JL instruction")
-            return 0 
+            return 0
 
 def parse_call(opcode : str, args) -> int:
     if len(args) != 1:
@@ -434,13 +436,13 @@ def parse_call(opcode : str, args) -> int:
         return 0
     else:
         dest = args[0].strip(',').strip()
-        if dest in registers:
+        if dest in allocated_routines:
             op = (instructions[opcode] << 27) & 0xFFFFFFFF
-            dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
-            return op | dest_reg
+            dest_addr = (allocated_routines[dest] << 22) & 0xFFFFFFFF
+            return op | dest_addr
         else:
             print(f"Error: Invalid arguments for CALL instruction")
-            return 0 
+            return 0
 
 def parse_ret(opcode : str, args) -> int:
     if len(args) != 0:

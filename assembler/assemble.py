@@ -189,12 +189,23 @@ if __name__ == '__main__':
     for line in lines:
         print(line, end='')
     print("=========================================")
-
+    
     encapsulate_routine(lines)
-    #assembled_program = assemble(lines)
-    #print("\nAssembled Program:")
-    #for line in assembled_program:
-    #    print(line)
+    
+    # Now we take all the routines and assign addresses
+    # .main is always at index 0
+    # we iterate through the routines and assign addresses
+    # address = current_address + len(routine[name])
+    
+    for routine in routines:
+        if routine == '.main':
+            allocated_routines[routine] = current_address
+            current_address += len(routines[routine])
+    for routine in routines:
+        if routine == '.main':
+            continue
+        allocated_routines[routine] = current_address
+        current_address += len(routines[routine])
 
     for routine in routines:
         print(routine)
@@ -208,6 +219,10 @@ if __name__ == '__main__':
     print("\nRoutines:")
     for routine in routines:
         print(routine, routines[routine])
+
+    print("\nAllocated Routines:")
+    for routine in allocated_routines:
+        print(routine + ": " + hex(allocated_routines[routine])) 
 
     print("\nMemory Contents:")
     for addr in memory:
