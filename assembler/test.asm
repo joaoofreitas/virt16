@@ -35,7 +35,7 @@
     @POP_CLEAR_SCREEN ; POP the registers for CLEAR_SCREEN and Return
     
 
-main: 
+.main: 
     LOAD R1, %ONE ; Load 1 into R1
 
     @PUSH_CLEAR_SCREEN ; Push the registers for CLEAR_SCREEN
