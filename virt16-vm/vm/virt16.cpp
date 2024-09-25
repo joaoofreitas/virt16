@@ -132,6 +132,10 @@ namespace Virt16 {
         return this->getRegister(DISP);
     }
 
+    unsigned short virt16::getPC() const {
+        return this->pc;
+    }
+
     // Setters
     void virt16::setMemory(const int addr, const unsigned short value) {
         if (addr >= 0 && addr < MEMORY_SIZE) {
@@ -176,12 +180,13 @@ namespace Virt16 {
         // IMM 16 bits
         // REG 5 bits
         // Max 32 instructions (0x00 - 0x1F)
-        const unsigned int instr = (instr_l << 8) | instr_h;
+        // Instruction is 32 bits, first 16 bits is instr_l and last 16 bits is instr_h
+        const unsigned int instr = (instr_l << 16) | instr_h;
         // Opcode is the first 5 bits
-        switch (unsigned char opcode = (instr_l & 0b11111000) >> 3) {
+        switch (unsigned char opcode = (instr & 0xf8) >> 27) {
             case (LOAD_IMM):
                 // OPCODE (5 bits) | REG (5 bits) | Empty (6 bits) | IMM (16 bits) - 32 bits Big Endian (MSB) Read Left to Right
-                X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> 27);
+                X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> 22);
                 imm = (instr & 0x0000FFFF);
                 this->setRegister(X, imm);
                 break;

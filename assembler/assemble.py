@@ -231,7 +231,12 @@ if __name__ == '__main__':
     with open(f"./build/{source_code_filename}.bin", 'wb') as f:
         for instruction in program:
             # Write the instruction as 32 bits (4 bytes), keep zeros at the beginning if needed
-            f.write(instruction.to_bytes(4, byteorder='big', signed=False))
+            # f.write(instruction.to_bytes(4, byteorder='big', signed=False))
+            upper = (instruction & 0xFFFF0000) >> 16
+            lower = instruction & 0x0000FFFF
+            print(hex(upper), hex(lower))
+            f.write(upper.to_bytes(2, byteorder='little', signed=False)) # It is little because write will write in little endian which will turn in Big endian
+            f.write(lower.to_bytes(2, byteorder='little', signed=False))
     
     # Write Data of the build to a file
     with open(f"./build/{source_code_filename}.data", 'w') as f:
@@ -259,6 +264,12 @@ if __name__ == '__main__':
         for instruction in program:
             f.write(hex(instruction) + "\n")
 
+    # For Virtual Machine Followup
+    with open(f"./build/{source_code_filename}.debug", 'w') as f:
+        # Write Data for Debug in VM
+        for routine in allocated_routines:
+            for instruction in routines[routine]:
+                f.write(instruction + "\n")
 
     print("=========================================")
     print("\nRoutines:")

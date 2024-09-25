@@ -81,6 +81,8 @@ namespace Virt16 {
 
         [[nodiscard]] unsigned short getDisp() const;
 
+        [[nodiscard]] unsigned short getPC() const;
+
         void setMemory(int addr, unsigned short value);
 
         void setRegister(Registers reg, unsigned short value);

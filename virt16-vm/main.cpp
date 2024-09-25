@@ -9,7 +9,9 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <cstdio>
+#include <fstream>
 #include <iostream>
+#include <vector>
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
 
 #include "vm/virt16.h"
@@ -101,6 +103,8 @@ int main(int, char **) {
     // UI Defs
     static uint16_t goto_address = 0;
     char address_input[4 + 1] = {0};
+    // Array of strings for debug info
+    std::vector<std::string> debug_info;
 
     // Main loop
 #ifdef __EMSCRIPTEN__
@@ -132,7 +136,7 @@ int main(int, char **) {
         if (ImGui::BeginTabBar("MainTabBar")) {
             if (ImGui::BeginTabItem("Load ROM")) {
                 // Add button for file picking and present the selected file and load button
-                static char file_path[256] = "";
+                static char file_path[256] = "/home/johnny/Documents/Projects/virt16/assembler/build/test.bin";
 
                 // Align center of the window
                 ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (ImGui::GetContentRegionAvail().y - 100) / 2);
@@ -144,6 +148,24 @@ int main(int, char **) {
                     if (strlen(file_path) > 0) {
                         try {
                             vm->load_program(file_path);
+                            // Remove the file extension in the end to get the path and name
+                            std::string path(file_path);
+                            path = path.substr(0, path.find_last_of('.'));
+                            path += ".debug";
+
+                            // Clear the debug info
+                            debug_info.clear();
+
+                            // Read file and add each line to debug_info
+                            std::ifstream file(path);
+                            if (file.is_open()) {
+                                std::string line;
+                                while (std::getline(file, line)) {
+                                    debug_info.push_back(line);
+                                }
+                                file.close();
+                            }
+
                         } catch ([[maybe_unused]] std::runtime_error &e) {
                             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x - 50) / 2);
                             ImGui::Text("Error loading file");
@@ -358,9 +380,23 @@ int main(int, char **) {
                 ImGui::Text("(Action Not implemented!)");
 
                 ImGui::EndChild();
+
+                //  Add a separator
+                ImGui::Separator();
+                // Debug Info
+                ImGui::BeginChild("Debug Info", ImVec2(0, 0), true);
+                // Iterate over vector and If pc matches the index highlight the line
+                for ( int i = 0; i < debug_info.size(); i++) {
+                    if (vm->getPC() / 2 == i) {
+                        ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s", debug_info[i].c_str());
+                    } else {
+                        ImGui::Text("%s", debug_info[i].c_str());
+                    }
+                }
+
                 ImGui::EndChild();
 
-
+                ImGui::EndChild();
                 ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
