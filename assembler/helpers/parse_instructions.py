@@ -353,7 +353,7 @@ def parse_jmp(opcode : str, args) -> int:
         dest = args[0].strip(',').strip()
         if dest in allocated_routines:
             op = (instructions[opcode] << 27) & 0xFFFFFFFF
-            dest_addr = (allocated_routines[dest] << 22) & 0xFFFFFFFF
+            dest_addr = (allocated_routines[dest])
             return op | dest_addr
         else:
             print(f"Error: Invalid arguments for JMP instruction")
@@ -368,7 +368,7 @@ def parse_jz(opcode : str, args) -> int:
         dest = args[0].strip(',').strip()
         if dest in allocated_routines:
             op = (instructions[opcode] << 27) & 0xFFFFFFFF
-            dest_addr = (allocated_routines[dest] << 22) & 0xFFFFFFFF
+            dest_addr = (allocated_routines[dest])
             return op | dest_addr
         else:
             print(f"Error: Invalid arguments for JZ instruction")
@@ -382,7 +382,7 @@ def parse_je(opcode : str, args) -> int:
         dest = args[0].strip(',').strip()
         if dest in allocated_routines: 
             op = (instructions[opcode] << 27) & 0xFFFFFFFF
-            dest_addr = (allocated_routines[dest] << 22) & 0xFFFFFFFF
+            dest_addr = (allocated_routines[dest])
             return op | dest_addr
         else:
             print(f"Error: Invalid arguments for JE instruction")
@@ -396,7 +396,7 @@ def parse_jne(opcode : str, args) -> int:
         dest = args[0].strip(',').strip()
         if dest in allocated_routines:
             op = (instructions[opcode] << 27) & 0xFFFFFFFF
-            dest_addr = (allocated_routines[dest] << 22) & 0xFFFFFFFF
+            dest_addr = (allocated_routines[dest])
             return op | dest_addr
         else:
             print(f"Error: Invalid arguments for JNE instruction")
@@ -410,7 +410,7 @@ def parse_jg(opcode : str, args) -> int:
         dest = args[0].strip(',').strip()
         if dest in allocated_routines:
             op = (instructions[opcode] << 27) & 0xFFFFFFFF
-            dest_addr = (allocated_routines[dest] << 22) & 0xFFFFFFFF
+            dest_addr = (allocated_routines[dest])
             return op | dest_addr
         else:
             print(f"Error: Invalid arguments for JG instruction")
@@ -424,7 +424,7 @@ def parse_jl(opcode : str, args) -> int:
         dest = args[0].strip(',').strip()
         if dest in allocated_routines:
             op = (instructions[opcode] << 27) & 0xFFFFFFFF
-            dest_addr = (allocated_routines[dest] << 22) & 0xFFFFFFFF
+            dest_addr = (allocated_routines[dest])
             return op | dest_addr
         else:
             print(f"Error: Invalid arguments for JL instruction")
@@ -438,7 +438,8 @@ def parse_call(opcode : str, args) -> int:
         dest = args[0].strip(',').strip()
         if dest in allocated_routines:
             op = (instructions[opcode] << 27) & 0xFFFFFFFF
-            dest_addr = (allocated_routines[dest] << 22) & 0xFFFFFFFF
+            # Dest address is the last 16 bits of the 32-bit instruction
+            dest_addr = (allocated_routines[dest]) & 0xFFFFFFFF
             return op | dest_addr
         else:
             print(f"Error: Invalid arguments for CALL instruction")

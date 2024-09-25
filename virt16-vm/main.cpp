@@ -385,6 +385,7 @@ int main(int, char **) {
                 ImGui::Separator();
                 // Debug Info
                 ImGui::BeginChild("Debug Info", ImVec2(0, 0), true);
+                ImGui::Text("PC: 0x%04X", vm->getPC());
                 // Iterate over vector and If pc matches the index highlight the line
                 for ( int i = 0; i < debug_info.size(); i++) {
                     // Align center

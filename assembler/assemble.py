@@ -214,6 +214,11 @@ if __name__ == '__main__':
             continue
         allocated_routines[routine] = current_address
         current_address += len(routines[routine])
+
+    for alloc_r in allocated_routines:
+        # Correct address since instructions are split in the real machine
+        allocated_routines[alloc_r] = allocated_routines[alloc_r] * 2
+
     
     # Now we assemble the instructions and store them in the program
     for alloc_r in allocated_routines:
@@ -258,11 +263,11 @@ if __name__ == '__main__':
         for definition in definitions:
             f.write(definition + ": " + str(definitions[definition]) + "\n")
         f.write("\nProgram Bin:\n")
-        for instruction in program:
-            f.write(bin(instruction) + "\n")
+        for addr, instruction in enumerate(program):
+            f.write(hex(addr) + ": " + bin(instruction) + "\n")
         f.write("\nProgram Hex:\n")
-        for instruction in program:
-            f.write(hex(instruction) + "\n")
+        for addr, instruction in enumerate(program):
+            f.write(hex(addr) + ": " +hex(instruction) + "\n")
 
     # For Virtual Machine Followup
     with open(f"./build/{source_code_filename}.debug", 'w') as f:

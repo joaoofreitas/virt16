@@ -196,30 +196,175 @@ namespace Virt16 {
                 this->setRegister(X, this->getMemory(Y));
                 break;
             case (STORE_ADDR):
-                break;
-            case (NOP):
-                break;
+                X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> (32 - 5 - 5));
+                Y = static_cast<Registers>((instr & 0b00000000001111100000000000000000) >> (32 - 5 - 5 - 5));
+                this->setMemory(this->getRegister(X), this->getRegister(Y));
+            break;
             case (MOV):
-                break;
+                X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> (32 - 5 - 5));
+            Y = static_cast<Registers>((instr & 0b00000000001111100000000000000000) >> (32 - 5 - 5 - 5));
+            this->setRegister(X, this->getRegister(Y));
+            break;
             case (INC):
-                break;
+                X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> (32 - 5 - 5));
+            this->setRegister(X, this->getRegister(X) + 1);
+            break;
             case (DEC):
+                X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> (32 - 5 - 5));
+            this->setRegister(X, this->getRegister(X) - 1);
+            break;
+            case (ADD): {
+                X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> (32 - 5 - 5));
+                Y = static_cast<Registers>((instr & 0b00000000001111100000000000000000) >> (32 - 5 - 5 - 5));
+                Z = static_cast<Registers>((instr & 0b00000000000000011111000000000000) >> (32 - 5 - 5 - 5 - 5));
+                const unsigned int sum = this->getRegister(Y) + this->getRegister(Z);
+                const unsigned short sum_msb = (sum & 0xFFFF0000) >> 16;
+                const unsigned short sum_lsb = sum & 0x0000FFFF;
+                this->setMemory(this->getRegister(X), sum_msb);
+                this->setMemory(this->getRegister(X)+1, sum_lsb);
                 break;
-            // More to add... ALU
+            }
+            case (SUB): {
+                X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> (32 - 5 - 5));
+                Y = static_cast<Registers>((instr & 0b00000000001111100000000000000000) >> (32 - 5 - 5 - 5));
+                Z = static_cast<Registers>((instr & 0b00000000000000011111000000000000) >> (32 - 5 - 5 - 5 - 5));
+
+                const unsigned int diff = this->getRegister(Y) - this->getRegister(Z);
+                const unsigned short diff_msb = (diff & 0xFFFF0000) >> 16;
+                const unsigned short diff_lsb = diff & 0x0000FFFF;
+
+                this->setMemory(this->getRegister(X), diff_msb);
+                this->setMemory(this->getRegister(X)+1, diff_lsb);
+                break;
+            }
+            case (AND):
+                X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> (32 - 5 - 5));
+                Y = static_cast<Registers>((instr & 0b00000000001111100000000000000000) >> (32 - 5 - 5 - 5));
+                Z = static_cast<Registers>((instr & 0b00000000000000011111000000000000) >> (32 - 5 - 5 - 5 - 5));
+
+                this->setRegister(X, this->getRegister(Y) & this->getRegister(Z));
+                break;
+
+            case (OR):
+                X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> (32 - 5 - 5));
+                Y = static_cast<Registers>((instr & 0b00000000001111100000000000000000) >> (32 - 5 - 5 - 5));
+                Z = static_cast<Registers>((instr & 0b00000000000000011111000000000000) >> (32 - 5 - 5 - 5 - 5));
+
+                this->setRegister(X, this->getRegister(Y) | this->getRegister(Z));
+                break;
+
+            case (XOR):
+                X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> (32 - 5 - 5));
+                Y = static_cast<Registers>((instr & 0b00000000001111100000000000000000) >> (32 - 5 - 5 - 5));
+                Z = static_cast<Registers>((instr & 0b00000000000000011111000000000000) >> (32 - 5 - 5 - 5 - 5));
+
+                this->setRegister(X, this->getRegister(Y) ^ this->getRegister(Z));
+                break;
+
+            case (NOT):
+                X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> (32 - 5 - 5));
+                Y = static_cast<Registers>((instr & 0b00000000001111100000000000000000) >> (32 - 5 - 5 - 5));
+                this->setRegister(X, ~this->getRegister(Y));
+                break;
+
+            case (SHL):
+                X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> (32 - 5 - 5));
+                Y = static_cast<Registers>((instr & 0b00000000001111100000000000000000) >> (32 - 5 - 5 - 5));
+                Z = static_cast<Registers>((instr & 0b00000000000000011111000000000000) >> (32 - 5 - 5 - 5 - 5));
+
+                this->setRegister(X, this->getRegister(Y) << this->getRegister(Z));
+                break;
+            case (SHR):
+                X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> (32 - 5 - 5));
+                Y = static_cast<Registers>((instr & 0b00000000001111100000000000000000) >> (32 - 5 - 5 - 5));
+                Z = static_cast<Registers>((instr & 0b00000000000000011111000000000000) >> (32 - 5 - 5 - 5 - 5));
+
+                this->setRegister(X, this->getRegister(Y) >> this->getRegister(Z));
+                break;
+
+            case (CMP):
+            {
+                X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> (32 - 5 - 5));
+                Y = static_cast<Registers>((instr & 0b00000000001111100000000000000000) >> (32 - 5 - 5 - 5));
+
+                const unsigned short x_val = this->getRegister(X);
+                const unsigned short y_val = this->getRegister(Y);
+
+                if (x_val == y_val) {
+                    this->setFlag(E, true);
+                }
+                if (x_val > y_val) {
+                    this->setFlag(G, true);
+                }
+                if (x_val < y_val) {
+                    this->setFlag(L, true);
+                }
+                break;
+            }
+            case (JMP):
+                addr = (instr & 0xFFFF);
+                this->pc = addr;
+                break;
+            case (JZ):
+                addr = (instr & 0xFFFF);
+                if (this->getFlag(Virt16::Z)) {
+                    this->pc = addr;
+                }
+                break;
+            case (JE):
+                addr = (instr & 0xFFFF);
+                if (this->getFlag(Virt16::E)) {
+                    this->pc = addr;
+                }
+                break;
+            case (JNE):
+                addr = (instr & 0xFFFF);
+                if (!this->getFlag(Virt16::E)) {
+                    this->pc = addr;
+                }
+                break;
+            case (JG):
+                addr = (instr & 0xFFFF);
+                if (this->getFlag(Virt16::G)) {
+                    this->pc = addr;
+                }
+                break;
+            case (JL):
+                addr = (instr & 0xFFFF);
+                if (this->getFlag(Virt16::L)) {
+                    this->pc = addr;
+                }
+                break;
+            case (CALL):
+                addr = (instr & 0xFFFF);
+                this->setRegister(SP, this->getRegister(SP) - 1);
+                this->setMemory(this->getRegister(SP), this->pc);
+                this->pc = addr - 2;
+                break;
+            case (RET):
+                this->pc = this->getMemory(this->getRegister(SP));
+                this->setRegister(SP, this->getRegister(SP) + 1);
+                break;
+            case (PUSH):
+                X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> (32 - 5 - 5));
+                this->setRegister(SP, this->getRegister(SP) - 1);
+                this->setMemory(this->getRegister(SP), this->getRegister(X));
+                break;
+            case (POP):
+                X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> (32 - 5 - 5));
+                this->setRegister(X, this->getMemory(this->getRegister(SP)));
+                this->setRegister(SP, this->getRegister(SP) + 1);
+                break;
             case (HLT):
                 this->running = false;
                 break;
-            case (JMP):
-                addr = (instr & 0b00000111111111111111100000000000) >> (32 - 16);
-                this->pc = addr;
+            case (NOP):
                 break;
             default:
                 // Invalid opcode
                 std::cout << "Invalid opcode: " << opcode << std::endl;
                 break;
         }
-
-
         this->pc += 2;
     }
 

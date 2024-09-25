@@ -86,7 +86,8 @@ def substitute_macros_and_defs(lines):
                 # Insert body into lines
                 lines[i] = '    ' + b_copy[0] + '\n'
                 for line in b_copy[1:]:
-                    lines.insert(i+1, '    ' + line + '\n')
+                    i += 1
+                    lines.insert(i, '    ' + line + '\n')
 
             else:
                 print(f"Error: Macro {match} not defined")
