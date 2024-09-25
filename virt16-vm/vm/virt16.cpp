@@ -183,7 +183,7 @@ namespace Virt16 {
         // Instruction is 32 bits, first 16 bits is instr_l and last 16 bits is instr_h
         const unsigned int instr = (instr_l << 16) | instr_h;
         // Opcode is the first 5 bits
-        switch (unsigned char opcode = (instr & 0xf8) >> 27) {
+        switch (unsigned char opcode = (instr & 0xf8000000) >> 27) {
             case (LOAD_IMM):
                 // OPCODE (5 bits) | REG (5 bits) | Empty (6 bits) | IMM (16 bits) - 32 bits Big Endian (MSB) Read Left to Right
                 X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> 22);

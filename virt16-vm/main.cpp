@@ -387,8 +387,11 @@ int main(int, char **) {
                 ImGui::BeginChild("Debug Info", ImVec2(0, 0), true);
                 // Iterate over vector and If pc matches the index highlight the line
                 for ( int i = 0; i < debug_info.size(); i++) {
+                    // Align center
+                    ImGui::SetCursorScreenPos(ImVec2(ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(debug_info[i].c_str()).x) / 2, ImGui::GetCursorScreenPos().y));
+
                     if (vm->getPC() / 2 == i) {
-                        ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s", debug_info[i].c_str());
+                        ImGui::TextColored(ImVec4(1, 1, 0, 1), "%s", debug_info[i].c_str());
                     } else {
                         ImGui::Text("%s", debug_info[i].c_str());
                     }
