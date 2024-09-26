@@ -225,12 +225,12 @@ if __name__ == '__main__':
         # Assemble the instructions
         for instruction in routines[alloc_r]:
             program.append(assemble_instruction(instruction))
-    
 
-    
+        
     # Create build directory if it doesn't exist
     if not os.path.exists('./build'):
         os.makedirs('./build')
+
 
     # Write the program in binary to a simple file.
     with open(f"./build/{source_code_filename}.bin", 'wb') as f:
@@ -242,6 +242,21 @@ if __name__ == '__main__':
             print(hex(upper), hex(lower))
             f.write(upper.to_bytes(2, byteorder='little', signed=False)) # It is little because write will write in little endian which will turn in Big endian
             f.write(lower.to_bytes(2, byteorder='little', signed=False))
+
+        for address, val in places.items():
+            addr = int(address, 16)
+            f.seek(addr)
+            if isinstance(val, str):
+                # Convert string to ASCII and write it to the file at the specified address
+                ascii_values = [ord(c) for c in val]
+                for ascii_val in ascii_values:
+                    f.write(ascii_val.to_bytes(2, byteorder='little', signed=False))
+            else:
+                # Write array of hex values
+                for hex_val in val:
+                    value = int(hex_val, 16)
+                    # Write as 16-bit values
+                    f.write(value.to_bytes(2, byteorder='little', signed=False))
     
     # Write Data of the build to a file
     with open(f"./build/{source_code_filename}.data", 'w') as f:
@@ -262,6 +277,9 @@ if __name__ == '__main__':
         f.write("\nDefinitions:\n")
         for definition in definitions:
             f.write(definition + ": " + str(definitions[definition]) + "\n")
+        f.write("\nPlaces:\n")
+        for place in places:
+            f.write(place + ": " + str(places[place]) + "\n")
         f.write("\nProgram Bin:\n")
         for addr, instruction in enumerate(program):
             f.write(hex(addr) + ": " + bin(instruction) + "\n")
@@ -296,7 +314,11 @@ if __name__ == '__main__':
     print("\nDefinitions:")
     for definition in definitions:
         print(definition, definitions[definition])
-
+    
+    print("\nPlaces:")
+    for place in places:
+        print(place, places[place])
+    
     print("Program:")
     for instruction in program:
         print(bin(instruction))
