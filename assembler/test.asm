@@ -30,8 +30,21 @@
 @endmacro
 
 @macro ADD [n]
+    LOAD R0, #0x00; Load 0 into R0
+    LOAD R1, #0x00; Load 0 into R1
+    LOAD R2, #0xFFFF; Load 0 into R2
+
+    PUSH R0 ; Push R0 onto the stack
+    PUSH R1 ; Push R1 onto the stack
+    PUSH R2 ; Push R2 onto the stack
+
     LOAD R0, n ; Load n into R0
-    ADD R1, R1, R0 ; Add R0 to R1
+    LOAD R1, #0x100;
+    ADD R1, R2, R0 ; Add 0 (R0) with n and store at the address in R1
+
+    POP R2 ; Pop R2 from the stack
+    POP R1 ; Pop R1 from the stack
+    POP R0 ; Pop R0 from the stack
 @endmacro
 
 .CLEAR_SCREEN:
@@ -54,5 +67,5 @@
     CALL .CLEAR_SCREEN
     @POP_CLEAR_SCREEN ; POP the registers for CLEAR_SCREEN and Return
 
-    @ADD %DE ; Add 0xDE to R1
+    @ADD #0xFFFF ; Add 0xDE to R1
     HLT ; Halt the program

@@ -148,7 +148,7 @@ namespace Virt16 {
         this->registers[reg] = value;
     }
 
-    void virt16::setFlag(const int flag, const bool value) {
+    void virt16::setFlag(const Flags flag, const bool value) {
         switch (flag) {
             case Z: z = value;
                 break;
@@ -217,11 +217,18 @@ namespace Virt16 {
                 X = static_cast<Registers>((instr & 0b00000111110000000000000000000000) >> (32 - 5 - 5));
                 Y = static_cast<Registers>((instr & 0b00000000001111100000000000000000) >> (32 - 5 - 5 - 5));
                 Z = static_cast<Registers>((instr & 0b00000000000000011111000000000000) >> (32 - 5 - 5 - 5 - 5));
-                const unsigned int sum = this->getRegister(Y) + this->getRegister(Z);
-                const unsigned short sum_msb = (sum & 0xFFFF0000) >> 16;
-                const unsigned short sum_lsb = sum & 0x0000FFFF;
-                this->setMemory(this->getRegister(X), sum_msb);
-                this->setMemory(this->getRegister(X)+1, sum_lsb);
+
+                if (const unsigned int sum = this->getRegister(Y) + this->getRegister(Z); sum > 0xFFFF) {
+                    const unsigned short sum_msb = (sum & 0xFFFF0000) >> 16;
+                    const unsigned short sum_lsb = sum & 0x0000FFFF;
+
+                    this->setMemory(this->getRegister(X), sum_msb);
+                    this->setMemory(this->getRegister(X)+1, sum_lsb);
+                    this->setFlag(C, true);
+                } else {
+                    this->setMemory(this->getRegister(X), sum);
+                }
+
                 break;
             }
             case (SUB): {
@@ -229,12 +236,18 @@ namespace Virt16 {
                 Y = static_cast<Registers>((instr & 0b00000000001111100000000000000000) >> (32 - 5 - 5 - 5));
                 Z = static_cast<Registers>((instr & 0b00000000000000011111000000000000) >> (32 - 5 - 5 - 5 - 5));
 
-                const unsigned int diff = this->getRegister(Y) - this->getRegister(Z);
-                const unsigned short diff_msb = (diff & 0xFFFF0000) >> 16;
-                const unsigned short diff_lsb = diff & 0x0000FFFF;
+                // Check if carry result is larger than 2 bytes
+                if (const unsigned int diff = this->getRegister(Y) - this->getRegister(Z); diff > 0xFFFF) {
+                    const unsigned short diff_msb = (diff & 0xFFFF0000) >> 16;
+                    const unsigned short diff_lsb = diff & 0x0000FFFF;
 
-                this->setMemory(this->getRegister(X), diff_msb);
-                this->setMemory(this->getRegister(X)+1, diff_lsb);
+                    this->setMemory(this->getRegister(X), diff_msb);
+                    this->setMemory(this->getRegister(X)+1, diff_lsb);
+                    this->setFlag(Flags::C, true);
+                } else {
+                    this->setMemory(this->getRegister(X), diff);
+                }
+
                 break;
             }
             case (AND):
@@ -357,6 +370,7 @@ namespace Virt16 {
                 break;
             case (HLT):
                 this->running = false;
+                this->pc -= 2;
                 break;
             case (NOP):
                 break;
@@ -388,5 +402,16 @@ namespace Virt16 {
             }
         }
         file.close();
+    }
+
+    void virt16::run() {
+        this->running = true;
+        while (this->running) {
+            this->step();
+        }
+    }
+
+    void virt16::stop() {
+        this->running = false;
     }
 } // Virt16

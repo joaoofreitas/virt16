@@ -51,7 +51,7 @@ namespace Virt16 {
     };
 
     enum Flags {
-        Z, G, L, E
+        Z, G, L, E, C
     };
 
     class virt16 {
@@ -65,6 +65,7 @@ namespace Virt16 {
         bool g;
         bool l;
         bool e;
+        bool c; // Overflow
 
         bool running;
 
@@ -87,13 +88,17 @@ namespace Virt16 {
 
         void setRegister(Registers reg, unsigned short value);
 
-        void setFlag(int flag, bool value);
+        void setFlag(Flags flag, bool value);
 
         void setDisp(unsigned short value);
 
         void step();
 
         void load_program(const char *program) noexcept;
+
+        void run();
+
+        void stop();
 
         ~virt16();
     };
