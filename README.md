@@ -166,7 +166,27 @@ Comments are allowed with `;` at the end of the line.
 
 ## Virtual Machine
 
-
-Display. Must be squared. 32x32 each address is a pixel color, 16 bits.
+Graphics: 32x32 each address is a pixel color, 16 bits.
 32x32 = 1024 pixels
-VRAM = 1024 * 2 = 2048 bytes
+
+Console: 16x16 grid of text
+Font should be loaded at address 0x3100. You can transform any font you'd like with the converter availiable.
+The grid for console interaction is starts at memory address 0x2900.
+
+## TODO
+
+Assembler:
+- Fix .PLACE and add arrays
+- Fix @macros for multiple argument substitution
+- Implement file imports.
+- After file imports implement a basic standard library for ADD, SUB, MUL, DIV, MOD and memory manipulation macros
+
+VM:
+    - Write tests for every single instruction so that we press a button and know if the VM is working
+
+Arch Future:
+    - Add JC instruction so we jump if carry flag is turned on and handle math properly;
+    - Add Overflow Flag and instruction to handle signed and unsigned values in the future.
+
+
+

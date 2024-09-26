@@ -314,6 +314,8 @@ int main(int, char **) {
                 ImGui::Text("L: %d", vm->getFlag(Virt16::L));
                 ImGui::SameLine();
                 ImGui::Text("E: %d", vm->getFlag(Virt16::E));
+                ImGui::SameLine();
+                ImGui::Text("C: %d", vm->getFlag(Virt16::C));
 
                 ImGui::Separator();
 
@@ -365,7 +367,7 @@ int main(int, char **) {
                     //  The character font address is 0x3100 + (character_ascii - 32) and the next 3 addresses
                     // Eg: ' ':32 is at 0x3100 to 0x3103, '!': is at 0x3104 to 0x3107 and so on
                     // What characters to draw are in address 0x2900 to 0x29FF
-
+                    // Current algorithm is super inefficient and should be optimized
                     // DEBUG
                     vm->setMemory(0x2900, '!');
                     vm->setMemory(0x3104, 0x0020);
