@@ -1,0 +1,64 @@
+from PIL import Image, ImageFont, ImageDraw
+
+ascii_chars = ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~'
+
+def ttf_to_bitmap_hex(font_path, char, size=8):
+    # Load the font
+    font = ImageFont.truetype(font_path, size)
+    
+    # Create a blank image with 1-bit color mode ('1' is binary/monochrome)
+    image = Image.new('1', (size, size), 1)  # 1 means white background
+    
+    draw = ImageDraw.Draw(image)
+    draw.text((0, 0), char, font=font, fill=0)  # 0 means black text
+
+    # Convert the image to a list of hex strings
+    bitmap_hex = []
+    for y in range(size):
+        hex_string = ''
+        for x in range(size):
+            hex_string += '1' if image.getpixel((x, y)) == 0 else '0'
+        bitmap_hex.append(hex_string)
+
+    return bitmap_hex
+
+
+import sys
+result = []
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print("Usage: python3 font_to_bits.py font.ttf")
+        sys.exit(1)
+    
+    font_path = sys.argv[1]
+    print("Generating bitmaps for ASCII characters using font:", font_path)
+    for char in ascii_chars:
+        bitmap_hex = ttf_to_bitmap_hex(font_path, char)
+        print(f"Hex bitmap for '{char}':")
+        for i in range(len(bitmap_hex)):
+            # Convert from hex string to binary string
+            binary_msb_str = bin(int(bitmap_hex[i], 2))[2:].zfill(8)
+            binary_lsb_str = bin(int(bitmap_hex[i+1], 2))[2:].zfill(8)
+
+            binary_string = binary_msb_str + binary_lsb_str
+            print(binary_string)
+
+            # Convert from 16 bits binary string to hex string
+            hex_string = hex(int(binary_string, 2)).zfill(4)
+            result.append(hex_string)
+
+
+
+    # Save the bitmaps to a file as font_name.virt16font in array format hexadecimal strings
+    with open('font.virt16font', 'w') as f:
+        f.write("[")
+        # Write the hex strings to the file every 8 results newline separated by commas
+        for i in range(len(result)):
+            if i % 8 == 0:
+                f.write("\n")
+            f.write(result[i])
+            if i != len(result) - 1:
+                f.write(", ")
+        f.write("]")
+            
+
