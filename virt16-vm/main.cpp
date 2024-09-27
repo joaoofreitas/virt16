@@ -368,12 +368,6 @@ int main(int, char **) {
                     // Eg: ' ':32 is at 0x3100 to 0x3103, '!': is at 0x3104 to 0x3107 and so on
                     // What characters to draw are in address 0x2900 to 0x29FF
                     // Current algorithm is super inefficient and should be optimized
-                    // DEBUG
-                    vm->setMemory(0x2900, '!');
-                    vm->setMemory(0x3104, 0x0020);
-                    vm->setMemory(0x3105, 0x2020);
-                    vm->setMemory(0x3106, 0x2020);
-                    vm->setMemory(0x3107, 0x0020);
 
                     // Set canvas size(16 characters, each 8x8 pixels, scaled by UPSCALE)
                     auto canvas_size = ImVec2(16 * 8 * UPSCALE_CONSOLE, 16 * 8 * UPSCALE_CONSOLE);

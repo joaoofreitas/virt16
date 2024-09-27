@@ -74,7 +74,7 @@ namespace Virt16 {
 
         void reset();
 
-        [[nodiscard]] unsigned short getMemory(int addr) const;
+        [[nodiscard]] unsigned short getMemory(unsigned int addr) const;
 
         [[nodiscard]] unsigned short getRegister(Registers reg) const;
 
@@ -84,7 +84,7 @@ namespace Virt16 {
 
         [[nodiscard]] unsigned short getPC() const;
 
-        void setMemory(int addr, unsigned short value);
+        void setMemory(unsigned int addr, unsigned short value);
 
         void setRegister(Registers reg, unsigned short value);
 

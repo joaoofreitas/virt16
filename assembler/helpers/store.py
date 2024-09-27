@@ -5,6 +5,7 @@ macros = {}
 definitions = {}
 memory = {}
 routines = {}
+places = {}
 
 def store_macros(lines):
     global macros
@@ -49,18 +50,61 @@ def store_definitions(lines):
     lines = [line for line in lines if not line.startswith('@define')]
     return lines
 
+# .PLACE is used to store ASCII text or Array of numbers in hex.
+# .PLACE 0x2000 "Hello, World!"
+# .PLACE 0x2000 [0x1048, 0x1045 ...]
+# The arrays can be multi-line
+
 def store_place(lines):
-    global memory
-    for line in lines:
+    global places
+
+    # To store the cleaned lines
+    cleaned_lines = []
+    i = 0
+    
+    while i < len(lines):
+        line = lines[i].strip()
+        
         if line.startswith('.PLACE'):
             parts = line.split()
-            addr = parts[1]
-            data = parts[2]
+            address = parts[1]  # Get the address
+            
+            # If it's a string (enclosed in double quotes)
+            if parts[2].startswith('"'):
+                text = line.split('"')[1]  # Extract text between quotes
+                places[address] = text
+                i += 1  # Move to the next line
+            # If it's an array (starts with a '[')
+            elif parts[2] == '[':
+                array = []
+                i += 1  # Move to the next line (start of array content)
+                
+                while i < len(lines):
+                    array_line = lines[i].strip()
+                    
+                    # If we find the closing ']', stop processing the array
+                    if array_line.endswith(']'):
+                        array.extend(array_line[:-1].split(','))  # Add the last part before ']'
+                        break
+                    
+                    # Otherwise, process the current line, removing any trailing commas
+                    array.extend(array_line.split(','))
+                    i += 1
+                
+                # Clean up array by stripping extra whitespace
+                array = [value.strip() for value in array if value.strip()]
+                places[address] = array
+                i += 1  # Move past the closing ']'
+            else:
+                print(f"Error: Unrecognized format for .PLACE at line {i + 1}")
+                i += 1
+        else:
+            # Keep non-.PLACE lines
+            cleaned_lines.append(lines[i])
+            i += 1
 
-            memory[addr] = data
-    # Remove all .PLACE lines
-    lines = [line for line in lines if not line.startswith('.PLACE')]
-    return lines
+    return cleaned_lines
+    
 
 def substitute_macros_and_defs(lines):
     # if line is a macro (starts with @), replace it with the body

@@ -63,6 +63,7 @@ TOTAL: 24 Registers
 - `G` Greater Than Flag
 - `L` Less Than Flag
 - `E` Equal Flag
+- c
 
 ## Instruction Set (32 Instructions)
    OPCODE for 32 instructions is 5 bits (0x00 - 0x1F)
@@ -149,8 +150,8 @@ TOTAL: 24 Registers
 TOTAL: 32 Instructions (0x00 - 0x1F) 5 bits
 
 Preprocessor Directives
-.PLACE STRING addr "Hello, World!"; 
-.PLACE ARRAY addr 0x00, 0x01, 0x02, 0x03, 0x04;
+.PLACE addr "Hello, World!"; 
+.PLACE addr [0x00, 0x01, 0x02, 0x03, 0x04];
 
 Comments are allowed with `;` at the end of the line.
 
@@ -159,8 +160,9 @@ Comments are allowed with `;` at the end of the line.
     LOAD R2, arg2
     ADD R3, R1, R2
     STORE arg3, R3
+@endmacro
 
-@define name, value
+@define name, value 
     LOAD R1, name ; Same as LOAD R1, value 
 
 

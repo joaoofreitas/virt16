@@ -107,11 +107,8 @@ namespace Virt16 {
         e = false;
     }
 
-    unsigned short virt16::getMemory(const int addr) const {
-        if (addr >= 0 && addr < MEMORY_SIZE) {
-            return memory[addr];
-        }
-        return 0; // or throw an exception
+    unsigned short virt16::getMemory(const unsigned int addr) const {
+        return this->memory[addr];
     }
 
     unsigned short virt16::getRegister(const Registers reg) const {
@@ -137,11 +134,8 @@ namespace Virt16 {
     }
 
     // Setters
-    void virt16::setMemory(const int addr, const unsigned short value) {
-        if (addr >= 0 && addr < MEMORY_SIZE) {
-            memory[addr] = value;
-        }
-        // else throw an exception
+    void virt16::setMemory(const unsigned int addr, const unsigned short value) {
+        this->memory[addr] = value;
     }
 
     void virt16::setRegister(const Registers reg, unsigned short value) {
@@ -392,9 +386,9 @@ namespace Virt16 {
 
         // Read the file contents into the memory array
         unsigned short address = 0;
+        unsigned short data;
         std::cout << "Loading program: " << program << std::endl;
-        while (file && address < MEMORY_SIZE) {
-            unsigned int data;
+        while (file) {
             // Read 2 bytes at a time
             file.read(reinterpret_cast<char *>(&data), 2);
             if (file) {
