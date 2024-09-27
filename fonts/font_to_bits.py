@@ -4,12 +4,17 @@ from PIL import Image, ImageFont, ImageDraw
 def ttf_to_bitmap_hex(font_path, char, size=8):
     # Load the font
     font = ImageFont.truetype(font_path, size)
-    
+    # Handle transparent bits at this resolution
+    font.getmask(char).getbbox()
+
     # Create a blank image with 1-bit color mode ('1' is binary/monochrome)
     image = Image.new('1', (size, size), 1)  # 1 means white background
-    
     draw = ImageDraw.Draw(image)
+
+
+    # Draw the character at the calculated position
     draw.text((0, 0), char, font=font, fill=0)  # 0 means black text
+
 
     # Convert the image to a list of hex strings
     bitmap_hex = []
@@ -30,12 +35,15 @@ if __name__ == '__main__':
     if len(sys.argv) != 2:
         print("Usage: python3 font_to_bits.py font.ttf")
         sys.exit(1)
+
     
     font_path = sys.argv[1]
+    font_name = font_path.strip().split('.ttf')[0]
+
     print("Generating bitmaps for ASCII characters using font:", font_path)
     bitmap_hex = []
     for char in ascii_chars:
-        bitmap = ttf_to_bitmap_hex(font_path, char)
+        bitmap = ttf_to_bitmap_hex(font_path, char, size=8)
         print(f"Hex bitmap for '{char}':")
         for row in bitmap:
             print(row)
@@ -55,7 +63,7 @@ if __name__ == '__main__':
 
 
     # Save the bitmaps to a file as font_name.virt16font in array format hexadecimal strings
-    with open('font.virt16font', 'w') as f:
+    with open(f'{font_name}.virt16font', 'w') as f:
         f.write("[")
         # Write the hex strings to the file every 8 results newline separated by commas
         for i in range(len(result)):
