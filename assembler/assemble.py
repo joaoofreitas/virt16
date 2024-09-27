@@ -244,7 +244,7 @@ if __name__ == '__main__':
             f.write(lower.to_bytes(2, byteorder='little', signed=False))
 
         for address, val in places.items():
-            addr = int(address, 16)
+            addr = int(address, 16) * 2 # Multiply by 2 since each address is 2 bytes
             f.seek(addr)
             if isinstance(val, str):
                 # Convert string to ASCII and write it to the file at the specified address
