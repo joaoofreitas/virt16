@@ -6,9 +6,10 @@
 #include "vm/virt16.h"
 
 /// Mutable UI state shared across tabs and persisted between frames.
-struct AppState {
-    std::vector<std::string> debug_info;  // one entry per assembled instruction, used by the debug panel
-    bool graphics_mode = false;           // false = console (text), true = graphics (pixel)
+struct AppState
+{
+    std::vector<std::string> debug_info; // one entry per assembled instruction, used by the debug panel
+    bool graphics_mode = false;          // false = console (text), true = graphics (pixel)
 };
 
 /// Renders the "Load ROM" tab: file path input, load button, and status text.

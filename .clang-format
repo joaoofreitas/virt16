@@ -21,4 +21,8 @@ TabWidth: 4
 UseTab: Never
 
 # 5. Column limit (Typical for readable driver/shader code)
-ColumnLimit: 100
+ColumnLimit: 120
+
+# 6. All-or-nothing argument wrapping
+BinPackArguments: false
+BinPackParameters: false

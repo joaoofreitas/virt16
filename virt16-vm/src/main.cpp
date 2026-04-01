@@ -17,17 +17,19 @@
 #include "ui.h"
 #include "vm/virt16.h"
 
-static constexpr int WINDOW_WIDTH  = 1280;
+static constexpr int WINDOW_WIDTH = 1280;
 static constexpr int WINDOW_HEIGHT = 720;
 
 /// GLFW error callback — prints the error code and description to stderr.
 /// @param error GLFW error code
 /// @param description human-readable error description
-static void on_glfw_error(int error, const char* description) {
+static void on_glfw_error(int error, const char* description)
+{
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
 
-int main(int, char**) {
+int main(int, char**)
+{
     glfwSetErrorCallback(on_glfw_error);
     if (!glfwInit())
         return 1;
@@ -51,9 +53,9 @@ int main(int, char**) {
 #endif
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT,
-                                          "Virt16 - Virtual Machine", nullptr, nullptr);
-    if (!window) {
+    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Virt16 - Virtual Machine", nullptr, nullptr);
+    if (!window)
+    {
         glfwTerminate();
         return 1;
     }
@@ -78,9 +80,11 @@ int main(int, char**) {
     vm.setDisp(0x3000);
     AppState state;
 
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window))
+    {
         glfwPollEvents();
-        if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0) {
+        if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0)
+        {
             ImGui_ImplGlfw_Sleep(10);
             continue;
         }
@@ -92,27 +96,30 @@ int main(int, char**) {
         // Single full-screen ImGui window that hosts all tabs
         ImGui::SetNextWindowPos(ImVec2(0, 0));
         ImGui::SetNextWindowSize(ImVec2(WINDOW_WIDTH, WINDOW_HEIGHT));
-        ImGui::Begin("Virt16", nullptr,
-                     ImGuiWindowFlags_NoMove              |
-                     ImGuiWindowFlags_NoCollapse          |
-                     ImGuiWindowFlags_NoResize            |
-                     ImGuiWindowFlags_NoTitleBar          |
-                     ImGuiWindowFlags_NoBringToFrontOnFocus);
+        ImGui::Begin("Virt16",
+                     nullptr,
+                     ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus);
 
-        if (ImGui::BeginTabBar("MainTabBar")) {
-            if (ImGui::BeginTabItem("Load ROM")) {
+        if (ImGui::BeginTabBar("MainTabBar"))
+        {
+            if (ImGui::BeginTabItem("Load ROM"))
+            {
                 render_load_rom_tab(&vm, state);
                 ImGui::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Memory Viewer")) {
+            if (ImGui::BeginTabItem("Memory Viewer"))
+            {
                 render_memory_viewer_tab(&vm);
                 ImGui::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Monitor")) {
+            if (ImGui::BeginTabItem("Monitor"))
+            {
                 render_monitor_tab(&vm, state);
                 ImGui::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Test Instructions")) {
+            if (ImGui::BeginTabItem("Test Instructions"))
+            {
                 ImGui::EndTabItem();
             }
             ImGui::EndTabBar();

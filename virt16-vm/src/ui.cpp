@@ -11,18 +11,17 @@
 #include <string>
 #include <vector>
 
-static constexpr int DISPLAY_PIXELS   = 32;   // graphics canvas is 32x32 pixels
-static constexpr int UPSCALE          = 16;   // each graphics pixel is 16x16 screen pixels
-static constexpr int CONSOLE_CHARS    = 16;   // console grid is 16x16 characters
-static constexpr int CHAR_PIXELS      = 8;    // each character glyph is 8x8 pixels
-static constexpr int UPSCALE_CONSOLE  = 4;    // each glyph pixel is 4x4 screen pixels
-
-// ─── Load ROM ────────────────────────────────────────────────────────────────
+static constexpr int DISPLAY_PIXELS = 32; // graphics canvas is 32x32 pixels
+static constexpr int UPSCALE = 16;        // each graphics pixel is 16x16 screen pixels
+static constexpr int CONSOLE_CHARS = 16;  // console grid is 16x16 characters
+static constexpr int CHAR_PIXELS = 8;     // each character glyph is 8x8 pixels
+static constexpr int UPSCALE_CONSOLE = 4; // each glyph pixel is 4x4 screen pixels
 
 /// Reads a .debug file matching the given .bin path and stores the lines in out.
 /// @param bin_path path to the loaded .bin file
 /// @param out vector to populate with debug lines
-static void load_debug_info(const char* bin_path, std::vector<std::string>& out) {
+static void load_debug_info(const char* bin_path, std::vector<std::string>& out)
+{
     std::string path(bin_path);
     path = path.substr(0, path.find_last_of('.')) + ".debug";
 
@@ -36,7 +35,8 @@ static void load_debug_info(const char* bin_path, std::vector<std::string>& out)
         out.push_back(line);
 }
 
-void render_load_rom_tab(Virt16::virt16* vm, AppState& state) {
+void render_load_rom_tab(Virt16::virt16* vm, AppState& state)
+{
     static char file_path[256] = "";
 
     // Center the controls vertically in the tab
@@ -46,25 +46,25 @@ void render_load_rom_tab(Virt16::virt16* vm, AppState& state) {
     ImGui::InputText("ROM File Path", file_path, sizeof(file_path));
 
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 180.0f);
-    if (ImGui::Button("Load ROM") && file_path[0] != '\0') {
+    if (ImGui::Button("Load ROM") && file_path[0] != '\0')
+    {
         vm->load_program(file_path);
         load_debug_info(file_path, state.debug_info);
     }
 
-    if (file_path[0] == '\0') {
+    if (file_path[0] == '\0')
+    {
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 180.0f);
         ImGui::TextDisabled("No file selected");
     }
 }
 
-// ─── Memory Viewer ───────────────────────────────────────────────────────────
-
-void render_memory_viewer_tab(Virt16::virt16* vm) {
+void render_memory_viewer_tab(Virt16::virt16* vm)
+{
     static uint16_t goto_address = 0;
-    static char     address_input[5] = {};
+    static char address_input[5] = {};
 
-    ImGui::InputText("##AddressInput", address_input, sizeof(address_input),
-                     ImGuiInputTextFlags_CharsHexadecimal);
+    ImGui::InputText("##AddressInput", address_input, sizeof(address_input), ImGuiInputTextFlags_CharsHexadecimal);
     ImGui::SameLine();
     if (ImGui::Button("Visit"))
         goto_address = static_cast<uint16_t>(std::strtol(address_input, nullptr, 16));
@@ -73,7 +73,8 @@ void render_memory_viewer_tab(Virt16::virt16* vm) {
         return;
 
     ImGui::TableSetupColumn("Address");
-    for (int col = 0; col < 16; ++col) {
+    for (int col = 0; col < 16; ++col)
+    {
         char header[3];
         std::snprintf(header, sizeof(header), "%X", col);
         ImGui::TableSetupColumn(header);
@@ -81,12 +82,14 @@ void render_memory_viewer_tab(Virt16::virt16* vm) {
     ImGui::TableHeadersRow();
 
     static constexpr int TOTAL_WORDS = 16384;
-    static constexpr int COLS        = 16;
+    static constexpr int COLS = 16;
 
-    for (int row = 0; row < TOTAL_WORDS / COLS; ++row) {
+    for (int row = 0; row < TOTAL_WORDS / COLS; ++row)
+    {
         ImGui::TableNextRow();
 
-        if (goto_address > 0 && row == goto_address / COLS) {
+        if (goto_address > 0 && row == goto_address / COLS)
+        {
             ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(255, 0, 0, 255));
             ImGui::SetScrollHereY();
             goto_address = 0;
@@ -95,7 +98,8 @@ void render_memory_viewer_tab(Virt16::virt16* vm) {
         ImGui::TableSetColumnIndex(0);
         ImGui::Text("0x%04X", row * COLS);
 
-        for (int col = 0; col < COLS; ++col) {
+        for (int col = 0; col < COLS; ++col)
+        {
             ImGui::TableSetColumnIndex(col + 1);
 
             const int addr = row * COLS + col;
@@ -107,9 +111,9 @@ void render_memory_viewer_tab(Virt16::virt16* vm) {
 
             char label[8];
             std::snprintf(label, sizeof(label), "##%04X", addr);
-            if (ImGui::InputText(label, buf, sizeof(buf),
-                                 ImGuiInputTextFlags_CharsHexadecimal |
-                                 ImGuiInputTextFlags_CharsUppercase)) {
+            if (ImGui::InputText(
+                    label, buf, sizeof(buf), ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase))
+            {
                 vm->setMemory(addr, static_cast<unsigned short>(std::stoul(buf, nullptr, 16)));
             }
         }
@@ -118,23 +122,27 @@ void render_memory_viewer_tab(Virt16::virt16* vm) {
     ImGui::EndTable();
 }
 
-// ─── Monitor – sub-panels ────────────────────────────────────────────────────
-
 /// Renders the control buttons (Step / Reset / Run / Stop) for the VM.
 /// @param vm the running VM instance
-static void render_control_buttons(Virt16::virt16* vm) {
-    if (ImGui::Button("Step"))  vm->step();
+static void render_control_buttons(Virt16::virt16* vm)
+{
+    if (ImGui::Button("Step"))
+        vm->step();
     ImGui::SameLine();
-    if (ImGui::Button("Reset")) vm->reset();
+    if (ImGui::Button("Reset"))
+        vm->reset();
     ImGui::SameLine();
-    if (ImGui::Button("Run"))   vm->run();
+    if (ImGui::Button("Run"))
+        vm->run();
     ImGui::SameLine();
-    if (ImGui::Button("Stop"))  vm->stop();
+    if (ImGui::Button("Stop"))
+        vm->stop();
 }
 
 /// Renders an editable table of all 24 general-purpose and special registers.
 /// @param vm the running VM instance
-static void render_register_table(Virt16::virt16* vm) {
+static void render_register_table(Virt16::virt16* vm)
+{
     ImGui::Separator();
     ImGui::Text("Registers");
 
@@ -145,7 +153,8 @@ static void render_register_table(Virt16::virt16* vm) {
     ImGui::TableSetupColumn("Value");
     ImGui::TableHeadersRow();
 
-    for (int i = Virt16::R0; i <= Virt16::P4; ++i) {
+    for (int i = Virt16::R0; i <= Virt16::P4; ++i)
+    {
         const auto reg = static_cast<Virt16::Registers>(i);
         ImGui::TableNextRow();
 
@@ -158,9 +167,9 @@ static void render_register_table(Virt16::virt16* vm) {
 
         char label[8];
         std::snprintf(label, sizeof(label), "##%s", Virt16::register_names[i]);
-        if (ImGui::InputText(label, buf, sizeof(buf),
-                             ImGuiInputTextFlags_CharsHexadecimal |
-                             ImGuiInputTextFlags_CharsUppercase)) {
+        if (ImGui::InputText(
+                label, buf, sizeof(buf), ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase))
+        {
             vm->setRegister(reg, static_cast<unsigned short>(std::stoul(buf, nullptr, 16)));
         }
     }
@@ -170,19 +179,25 @@ static void render_register_table(Virt16::virt16* vm) {
 
 /// Renders the five CPU flags (Z, G, L, E, C) as read-only labels.
 /// @param vm the running VM instance
-static void render_flags(Virt16::virt16* vm) {
+static void render_flags(Virt16::virt16* vm)
+{
     ImGui::Separator();
     ImGui::Text("Flags");
-    ImGui::Text("Z:%d", vm->getFlag(Virt16::Z)); ImGui::SameLine();
-    ImGui::Text("G:%d", vm->getFlag(Virt16::G)); ImGui::SameLine();
-    ImGui::Text("L:%d", vm->getFlag(Virt16::L)); ImGui::SameLine();
-    ImGui::Text("E:%d", vm->getFlag(Virt16::E)); ImGui::SameLine();
+    ImGui::Text("Z:%d", vm->getFlag(Virt16::Z));
+    ImGui::SameLine();
+    ImGui::Text("G:%d", vm->getFlag(Virt16::G));
+    ImGui::SameLine();
+    ImGui::Text("L:%d", vm->getFlag(Virt16::L));
+    ImGui::SameLine();
+    ImGui::Text("E:%d", vm->getFlag(Virt16::E));
+    ImGui::SameLine();
     ImGui::Text("C:%d", vm->getFlag(Virt16::C));
 }
 
 /// Renders the left register panel (buttons, register table, flags).
 /// @param vm the running VM instance
-static void render_register_panel(Virt16::virt16* vm) {
+static void render_register_panel(Virt16::virt16* vm)
+{
     ImGui::BeginChild("RegisterPanel", ImVec2(200, 0), ImGuiChildFlags_Borders);
     render_control_buttons(vm);
     render_register_table(vm);
@@ -194,21 +209,24 @@ static void render_register_panel(Virt16::virt16* vm) {
 /// Each word encodes a 12-bit RGB color: 0xRGBx (nibbles, high-to-low).
 /// @param vm the running VM instance
 /// @param canvas_pos top-left screen position of the canvas
-static void render_graphics_canvas(Virt16::virt16* vm, ImVec2 canvas_pos) {
+static void render_graphics_canvas(Virt16::virt16* vm, ImVec2 canvas_pos)
+{
     const ImVec2 canvas_size(DISPLAY_PIXELS * UPSCALE, DISPLAY_PIXELS * UPSCALE);
     ImGui::InvisibleButton("canvas", canvas_size);
     ImDrawList* dl = ImGui::GetWindowDrawList();
 
-    for (int y = 0; y < DISPLAY_PIXELS; ++y) {
-        for (int x = 0; x < DISPLAY_PIXELS; ++x) {
+    for (int y = 0; y < DISPLAY_PIXELS; ++y)
+    {
+        for (int x = 0; x < DISPLAY_PIXELS; ++x)
+        {
             const unsigned short c = vm->getMemory(vm->getDisp() + y * DISPLAY_PIXELS + x);
-            const unsigned char r  = (c & 0xF000) >> 8;
-            const unsigned char g  = (c & 0x0F00) >> 4;
-            const unsigned char b  = (c & 0x00F0) >> 0;
-            const ImU32 color      = IM_COL32(r * 17, g * 17, b * 17, 0xFF);
+            const unsigned char r = (c & 0xF000) >> 8;
+            const unsigned char g = (c & 0x0F00) >> 4;
+            const unsigned char b = (c & 0x00F0) >> 0;
+            const ImU32 color = IM_COL32(r * 17, g * 17, b * 17, 0xFF);
 
-            const ImVec2 p_min(canvas_pos.x + x * UPSCALE,          canvas_pos.y + y * UPSCALE);
-            const ImVec2 p_max(p_min.x      + UPSCALE, p_min.y + UPSCALE);
+            const ImVec2 p_min(canvas_pos.x + x * UPSCALE, canvas_pos.y + y * UPSCALE);
+            const ImVec2 p_max(p_min.x + UPSCALE, p_min.y + UPSCALE);
             dl->AddRectFilled(p_min, p_max, color);
         }
     }
@@ -218,19 +236,20 @@ static void render_graphics_canvas(Virt16::virt16* vm, ImVec2 canvas_pos) {
 /// Character buffer: 0x2900. Font base: 0x3100 (4 words per glyph, ASCII 32–127).
 /// @param vm the running VM instance
 /// @param canvas_pos top-left screen position of the canvas
-static void render_console_canvas(Virt16::virt16* vm, ImVec2 canvas_pos) {
+static void render_console_canvas(Virt16::virt16* vm, ImVec2 canvas_pos)
+{
     const int canvas_px = CONSOLE_CHARS * CHAR_PIXELS * UPSCALE_CONSOLE;
     const ImVec2 canvas_size(canvas_px, canvas_px);
     ImGui::InvisibleButton("canvas", canvas_size);
     ImDrawList* dl = ImGui::GetWindowDrawList();
 
     // Black background
-    dl->AddRectFilled(canvas_pos,
-                      ImVec2(canvas_pos.x + canvas_px, canvas_pos.y + canvas_px),
-                      IM_COL32(0, 0, 0, 0xFF));
+    dl->AddRectFilled(canvas_pos, ImVec2(canvas_pos.x + canvas_px, canvas_pos.y + canvas_px), IM_COL32(0, 0, 0, 0xFF));
 
-    for (int cy = 0; cy < CONSOLE_CHARS; ++cy) {
-        for (int cx = 0; cx < CONSOLE_CHARS; ++cx) {
+    for (int cy = 0; cy < CONSOLE_CHARS; ++cy)
+    {
+        for (int cx = 0; cx < CONSOLE_CHARS; ++cx)
+        {
             const unsigned short ch = vm->getMemory(0x2900 + cy * CONSOLE_CHARS + cx);
             if (ch < 32 || ch > 127)
                 continue;
@@ -239,23 +258,23 @@ static void render_console_canvas(Virt16::virt16* vm, ImVec2 canvas_pos) {
             // Each word holds two rows of 8 pixels: high byte = row N, low byte = row N+1.
             const unsigned short font_addr = 0x3100 + (ch - 32) * 4;
             unsigned char rows[8];
-            for (int w = 0; w < 4; ++w) {
+            for (int w = 0; w < 4; ++w)
+            {
                 const unsigned short word = vm->getMemory(font_addr + w);
-                rows[w * 2]     = (word & 0xFF00) >> 8;
+                rows[w * 2] = (word & 0xFF00) >> 8;
                 rows[w * 2 + 1] = (word & 0x00FF);
             }
 
-            const ImVec2 char_origin(
-                canvas_pos.x + cx * CHAR_PIXELS * UPSCALE_CONSOLE,
-                canvas_pos.y + cy * CHAR_PIXELS * UPSCALE_CONSOLE);
+            const ImVec2 char_origin(canvas_pos.x + cx * CHAR_PIXELS * UPSCALE_CONSOLE,
+                                     canvas_pos.y + cy * CHAR_PIXELS * UPSCALE_CONSOLE);
 
-            for (int row = 0; row < CHAR_PIXELS; ++row) {
-                for (int bit = 0; bit < CHAR_PIXELS; ++bit) {
-                    const bool lit  = (rows[row] >> (7 - bit)) & 1;
+            for (int row = 0; row < CHAR_PIXELS; ++row)
+            {
+                for (int bit = 0; bit < CHAR_PIXELS; ++bit)
+                {
+                    const bool lit = (rows[row] >> (7 - bit)) & 1;
                     const ImU32 col = lit ? IM_COL32(255, 255, 255, 255) : IM_COL32(0, 0, 0, 255);
-                    const ImVec2 p_min(
-                        char_origin.x + bit * UPSCALE_CONSOLE,
-                        char_origin.y + row * UPSCALE_CONSOLE);
+                    const ImVec2 p_min(char_origin.x + bit * UPSCALE_CONSOLE, char_origin.y + row * UPSCALE_CONSOLE);
                     const ImVec2 p_max(p_min.x + UPSCALE_CONSOLE, p_min.y + UPSCALE_CONSOLE);
                     dl->AddRectFilled(p_min, p_max, col);
                 }
@@ -267,7 +286,8 @@ static void render_console_canvas(Virt16::virt16* vm, ImVec2 canvas_pos) {
 /// Renders the center display panel with a mode toggle and the active canvas.
 /// @param vm the running VM instance
 /// @param graphics_mode true for pixel graphics, false for text console
-static void render_display_panel(Virt16::virt16* vm, bool& graphics_mode) {
+static void render_display_panel(Virt16::virt16* vm, bool& graphics_mode)
+{
     ImGui::BeginChild("DisplayPanel", ImVec2(512, 0), ImGuiChildFlags_Borders);
 
     ImGui::Text("Display Mode: %s", graphics_mode ? "Graphics" : "Console");
@@ -275,9 +295,8 @@ static void render_display_panel(Virt16::virt16* vm, bool& graphics_mode) {
         graphics_mode = !graphics_mode;
 
     // Center the canvas within the panel
-    const float canvas_w = graphics_mode
-        ? static_cast<float>(DISPLAY_PIXELS * UPSCALE)
-        : static_cast<float>(CONSOLE_CHARS * CHAR_PIXELS * UPSCALE_CONSOLE);
+    const float canvas_w = graphics_mode ? static_cast<float>(DISPLAY_PIXELS * UPSCALE)
+                                         : static_cast<float>(CONSOLE_CHARS * CHAR_PIXELS * UPSCALE_CONSOLE);
     const float canvas_h = canvas_w;
 
     ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
@@ -293,10 +312,12 @@ static void render_display_panel(Virt16::virt16* vm, bool& graphics_mode) {
 }
 
 /// Renders the hex keyboard (4×4 grid of buttons mapped to peripheral P0).
-static void render_hex_keyboard() {
+static void render_hex_keyboard()
+{
     ImGui::BeginChild("Peripherals", ImVec2(0, 150), ImGuiChildFlags_Borders);
     ImGui::Text("Hex Keyboard (P0)");
-    for (int i = 0; i < 16; ++i) {
+    for (int i = 0; i < 16; ++i)
+    {
         if (i % 4 != 0)
             ImGui::SameLine();
         char label[3];
@@ -310,16 +331,18 @@ static void render_hex_keyboard() {
 /// Renders the debug info panel: highlights the current PC line in yellow.
 /// @param vm the running VM instance
 /// @param debug_info one assembled instruction string per index
-static void render_debug_panel(Virt16::virt16* vm, const std::vector<std::string>& debug_info) {
+static void render_debug_panel(Virt16::virt16* vm, const std::vector<std::string>& debug_info)
+{
     ImGui::BeginChild("DebugInfo", ImVec2(0, 0), ImGuiChildFlags_Borders);
     ImGui::Text("PC: 0x%04X", vm->getPC());
 
-    for (int i = 0; i < static_cast<int>(debug_info.size()); ++i) {
+    for (int i = 0; i < static_cast<int>(debug_info.size()); ++i)
+    {
         const char* text = debug_info[i].c_str();
         float text_w = ImGui::CalcTextSize(text).x;
-        ImGui::SetCursorScreenPos(ImVec2(
-            ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - text_w) / 2.0f,
-            ImGui::GetCursorScreenPos().y));
+        ImGui::SetCursorScreenPos(
+            ImVec2(ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - text_w) / 2.0f,
+                   ImGui::GetCursorScreenPos().y));
 
         if (vm->getPC() / 2 == i)
             ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "%s", text);
@@ -333,7 +356,8 @@ static void render_debug_panel(Virt16::virt16* vm, const std::vector<std::string
 /// Renders the right panel: exclusive registers, hex keyboard, and debug output.
 /// @param vm the running VM instance
 /// @param debug_info assembled instruction strings for the debug view
-static void render_right_panel(Virt16::virt16* vm, const std::vector<std::string>& debug_info) {
+static void render_right_panel(Virt16::virt16* vm, const std::vector<std::string>& debug_info)
+{
     ImGui::BeginChild("RightPanel", ImVec2(0, 0), ImGuiChildFlags_Borders);
 
     // Top row: exclusive registers (left) + hex keyboard (right)
@@ -351,7 +375,8 @@ static void render_right_panel(Virt16::virt16* vm, const std::vector<std::string
     ImGui::EndChild();
 }
 
-void render_monitor_tab(Virt16::virt16* vm, AppState& state) {
+void render_monitor_tab(Virt16::virt16* vm, AppState& state)
+{
     render_register_panel(vm);
     ImGui::SameLine();
     render_display_panel(vm, state.graphics_mode);
