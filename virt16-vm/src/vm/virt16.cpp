@@ -184,50 +184,41 @@ void virt16::step()
     case INC:
         X = FIELD_X(instr);
         setRegister(X, getRegister(X) + 1);
+        setFlag(Flags::Z, getRegister(X) == 0);
         break;
 
     case DEC:
         X = FIELD_X(instr);
         setRegister(X, getRegister(X) - 1);
+        setFlag(Flags::Z, getRegister(X) == 0);
         break;
 
     case ADD:
     {
-        // ADD X, Y, Z — add Y+Z; if result overflows 16 bits store both halves at [X] and [X+1]
+        // ADD X, Y, Z — result stored directly in register X; C set on 16-bit overflow
         X = FIELD_X(instr);
         Y = FIELD_Y(instr);
         Z = FIELD_Z(instr);
         const unsigned int sum = getRegister(Y) + getRegister(Z);
-        if (sum > 0xFFFF)
-        {
-            setMemory(getRegister(X), static_cast<unsigned short>((sum & 0xFFFF0000) >> 16));
-            setMemory(getRegister(X) + 1, static_cast<unsigned short>(sum & 0x0000FFFF));
-            setFlag(C, true);
-        }
-        else
-        {
-            setMemory(getRegister(X), static_cast<unsigned short>(sum));
-        }
+        const unsigned short result = static_cast<unsigned short>(sum & 0xFFFF);
+        setRegister(X, result);
+        setFlag(Flags::C, sum > 0xFFFF);
+        setFlag(Flags::Z, result == 0);
         break;
     }
 
     case SUB:
     {
-        // SUB X, Y, Z — subtract Z from Y; overflow handling mirrors ADD
+        // SUB X, Y, Z — result stored directly in register X; C set on borrow (underflow)
         X = FIELD_X(instr);
         Y = FIELD_Y(instr);
         Z = FIELD_Z(instr);
+        const bool borrow = getRegister(Y) < getRegister(Z);
         const unsigned int diff = getRegister(Y) - getRegister(Z);
-        if (diff > 0xFFFF)
-        {
-            setMemory(getRegister(X), static_cast<unsigned short>((diff & 0xFFFF0000) >> 16));
-            setMemory(getRegister(X) + 1, static_cast<unsigned short>(diff & 0x0000FFFF));
-            setFlag(C, true);
-        }
-        else
-        {
-            setMemory(getRegister(X), static_cast<unsigned short>(diff));
-        }
+        const unsigned short result = static_cast<unsigned short>(diff & 0xFFFF);
+        setRegister(X, result);
+        setFlag(Flags::C, borrow);
+        setFlag(Flags::Z, result == 0);
         break;
     }
 
@@ -274,14 +265,17 @@ void virt16::step()
 
     case CMP:
     {
-        // CMP X, Y — set G/L/E flags based on comparison; does not write to a register
+        // CMP X, Y — clear all comparison flags then set based on result
         X = FIELD_X(instr);
         Y = FIELD_Y(instr);
         const unsigned short xv = getRegister(X);
         const unsigned short yv = getRegister(Y);
-        setFlag(E, xv == yv);
-        setFlag(G, xv > yv);
-        setFlag(L, xv < yv);
+        setFlag(Flags::E, false);
+        setFlag(Flags::G, false);
+        setFlag(Flags::L, false);
+        setFlag(Flags::E, xv == yv);
+        setFlag(Flags::G, xv > yv);
+        setFlag(Flags::L, xv < yv);
         break;
     }
 

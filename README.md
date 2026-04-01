@@ -4,12 +4,12 @@ The Virt16 is a virtual 16-bit computer that is designed to be simple and easy t
 
 ## Architecture
 - **Word size**: 16 bits (2 bytes)
-- **Memory size**: 32KB (32,768 bytes)
+- **Memory size**: 128KB (65,536 words × 2 bytes)
 - **Architecture type**: Von Neumann architecture (program and data share the same memory)
 
 ## Memory
-- **Words**: 16,384 (2 bytes each)
-- **Address range**: 0x0000 - 0x3FFF
+- **Words**: 65,536 (2 bytes each)
+- **Address range**: 0x0000 - 0xFFFF
 
 ## Display (In Memory DMA)
 - **Display Memory**: 0x3000 - 0x3FFF (4KB)
@@ -29,7 +29,7 @@ The Virt16 is a virtual 16-bit computer that is designed to be simple and easy t
 - **Video Address Register**:
   - `DISP`: Display Register (Contains Address of Current Display Memory)
 - **Flag Register**:
-  - `Z`: Zero Flag (True if A is zero)
+  - `Z`: Zero Flag (Set automatically when an arithmetic result is zero)
   - `G`: Greater Than Flag
   - `L`: Less Than Flag
   - `E`: Equal Flag
@@ -53,15 +53,15 @@ The Virt16 is a virtual 16-bit computer that is designed to be simple and easy t
 - `MOV X, Y`: Move value from Y to X
 - `INC X`: Increment X by 1
 - `DEC X`: Decrement X by 1
-- `ADD addr, Y, Z`: Add Y and Z and store in addr and addr + 1
-- `SUB addr, Y, Z`: Subtract Y from Z and store in addr and addr + 1
+- `ADD X, Y, Z`: Add Y and Z, store result in register X; sets C on overflow, Z if result is zero
+- `SUB X, Y, Z`: Subtract Z from Y, store result in register X; sets C on borrow, Z if result is zero
 - `AND X, Y, Z`: Bitwise AND Y and Z and store in X
 - `OR X, Y, Z`: Bitwise OR Y and Z and store in X
 - `XOR X, Y, Z`: Bitwise XOR Y and Z and store in X
 - `NOT X, Y`: Bitwise NOT Y and store in X
 - `SHL X, Y, Z`: Shift Y left by Z bits and store in X
 - `SHR X, Y, Z`: Shift Y right by Z bits and store in X
-- `CMP X, Y, Z`: Compare Y and Z and store in X
+- `CMP X, Y`: Compare X and Y; resets E/G/L then sets the appropriate flag
 - `JMP addr`: Jump to address
 - `JZ addr`: Jump if zero
 - `JE addr`: Jump if equal
@@ -85,8 +85,8 @@ The Virt16 is a virtual 16-bit computer that is designed to be simple and easy t
 | 0x03   | MOV X, Y         | Move value from Y to X                           | MOV R1, R2            |
 | 0x04   | INC X            | Increment X by 1                                 | INC R1                |
 | 0x05   | DEC X            | Decrement X by 1                                 | DEC R1                |
-| 0x06   | ADD X, Y, Z      | Add Y and Z and store in addr and addr+1 at X    | ADD R1, R2, R3        |
-| 0x07   | SUB X, Y, Z      | Sub Z from Y and store in addr and addr+1 at X   | SUB R1, R2, R2        |
+| 0x06   | ADD X, Y, Z      | Add Y and Z, store in register X; sets C, Z      | ADD R1, R2, R3        |
+| 0x07   | SUB X, Y, Z      | Sub Z from Y, store in register X; sets C, Z     | SUB R1, R2, R3        |
 | 0x08   | AND X, Y, Z      | Bitwise AND Y and Z and store in X               | AND R1, R2, R3        |
 | 0x09   | OR X, Y, Z       | Bitwise OR Y and Z and store in X                | OR R1, R2, R3         |
 | 0x0A   | XOR X, Y, Z      | Bitwise XOR Y and Z and store in X               | XOR R1, R2, R3        |
