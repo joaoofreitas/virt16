@@ -104,7 +104,7 @@ void render_memory_viewer_tab(Virt16::virt16* vm)
 
             const int addr = row * COLS + col;
             char buf[5];
-            std::snprintf(buf, sizeof(buf), "%04X", vm->getMemory(addr));
+            std::snprintf(buf, sizeof(buf), "%04X", vm->memory[addr]);
 
             float text_width = ImGui::CalcTextSize(buf).x;
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetColumnWidth() - text_width) / 2.0f);
@@ -114,7 +114,7 @@ void render_memory_viewer_tab(Virt16::virt16* vm)
             if (ImGui::InputText(
                     label, buf, sizeof(buf), ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase))
             {
-                vm->setMemory(addr, static_cast<unsigned short>(std::stoul(buf, nullptr, 16)));
+                vm->memory[addr] = static_cast<unsigned short>(std::stoul(buf, nullptr, 16));
             }
         }
     }
@@ -163,14 +163,14 @@ static void render_register_table(Virt16::virt16* vm)
 
         ImGui::TableSetColumnIndex(1);
         char buf[5];
-        std::snprintf(buf, sizeof(buf), "%04X", vm->getRegister(reg));
+        std::snprintf(buf, sizeof(buf), "%04X", vm->registers[reg]);
 
         char label[8];
         std::snprintf(label, sizeof(label), "##%s", Virt16::register_names[i]);
         if (ImGui::InputText(
                 label, buf, sizeof(buf), ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase))
         {
-            vm->setRegister(reg, static_cast<unsigned short>(std::stoul(buf, nullptr, 16)));
+            vm->registers[reg] = static_cast<unsigned short>(std::stoul(buf, nullptr, 16));
         }
     }
 
@@ -183,15 +183,15 @@ static void render_flags(Virt16::virt16* vm)
 {
     ImGui::Separator();
     ImGui::Text("Flags");
-    ImGui::Text("Z:%d", vm->getFlag(Virt16::Z));
+    ImGui::Text("Z:%d", vm->z);
     ImGui::SameLine();
-    ImGui::Text("G:%d", vm->getFlag(Virt16::G));
+    ImGui::Text("G:%d", vm->g);
     ImGui::SameLine();
-    ImGui::Text("L:%d", vm->getFlag(Virt16::L));
+    ImGui::Text("L:%d", vm->l);
     ImGui::SameLine();
-    ImGui::Text("E:%d", vm->getFlag(Virt16::E));
+    ImGui::Text("E:%d", vm->e);
     ImGui::SameLine();
-    ImGui::Text("C:%d", vm->getFlag(Virt16::C));
+    ImGui::Text("C:%d", vm->c);
 }
 
 /// Renders the left register panel (buttons, register table, flags).
@@ -219,7 +219,7 @@ static void render_graphics_canvas(Virt16::virt16* vm, ImVec2 canvas_pos)
     {
         for (int x = 0; x < DISPLAY_PIXELS; ++x)
         {
-            const unsigned short c = vm->getMemory(vm->getDisp() + y * DISPLAY_PIXELS + x);
+            const unsigned short c = vm->memory[vm->registers[Virt16::DISP] + y * DISPLAY_PIXELS + x];
             const unsigned char r = (c & 0xF000) >> 8;
             const unsigned char g = (c & 0x0F00) >> 4;
             const unsigned char b = (c & 0x00F0) >> 0;
@@ -250,7 +250,7 @@ static void render_console_canvas(Virt16::virt16* vm, ImVec2 canvas_pos)
     {
         for (int cx = 0; cx < CONSOLE_CHARS; ++cx)
         {
-            const unsigned short ch = vm->getMemory(0x2900 + cy * CONSOLE_CHARS + cx);
+            const unsigned short ch = vm->memory[0x2900 + cy * CONSOLE_CHARS + cx];
             if (ch < 32 || ch > 127)
                 continue;
 
@@ -260,7 +260,7 @@ static void render_console_canvas(Virt16::virt16* vm, ImVec2 canvas_pos)
             unsigned char rows[8];
             for (int w = 0; w < 4; ++w)
             {
-                const unsigned short word = vm->getMemory(font_addr + w);
+                const unsigned short word = vm->memory[font_addr + w];
                 rows[w * 2] = (word & 0xFF00) >> 8;
                 rows[w * 2 + 1] = (word & 0x00FF);
             }
@@ -334,7 +334,7 @@ static void render_hex_keyboard()
 static void render_debug_panel(Virt16::virt16* vm, const std::vector<std::string>& debug_info)
 {
     ImGui::BeginChild("DebugInfo", ImVec2(0, 0), ImGuiChildFlags_Borders);
-    ImGui::Text("PC: 0x%04X", vm->getPC());
+    ImGui::Text("PC: 0x%04X", vm->pc);
 
     for (int i = 0; i < static_cast<int>(debug_info.size()); ++i)
     {
@@ -344,7 +344,7 @@ static void render_debug_panel(Virt16::virt16* vm, const std::vector<std::string
             ImVec2(ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - text_w) / 2.0f,
                    ImGui::GetCursorScreenPos().y));
 
-        if (vm->getPC() / 2 == i)
+        if (vm->pc / 2 == i)
             ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "%s", text);
         else
             ImGui::Text("%s", text);
@@ -362,7 +362,7 @@ static void render_right_panel(Virt16::virt16* vm, const std::vector<std::string
 
     // Top row: exclusive registers (left) + hex keyboard (right)
     ImGui::BeginChild("ExclusiveRegisters", ImVec2(300, 150), ImGuiChildFlags_Borders);
-    ImGui::Text("DISP: 0x%04X", vm->getDisp());
+    ImGui::Text("DISP: 0x%04X", vm->registers[Virt16::DISP]);
     ImGui::TextDisabled("TODO: exclusive register table");
     ImGui::EndChild();
 

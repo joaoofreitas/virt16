@@ -43,17 +43,6 @@
 namespace Virt16
 {
 
-virt16::virt16()
-{
-    std::memset(memory, 0, sizeof(memory));
-    std::memset(registers, 0, sizeof(registers));
-    pc = 0;
-    z = g = l = e = c = false;
-    running = false;
-}
-
-virt16::~virt16() = default;
-
 void virt16::reset()
 {
     std::memset(memory, 0, sizeof(memory));
@@ -62,89 +51,11 @@ void virt16::reset()
     z = g = l = e = c = false;
 }
 
-unsigned short virt16::getMemory(const unsigned int addr) const
-{
-    return memory[addr];
-}
-
-unsigned short virt16::getRegister(const Registers reg) const
-{
-    return registers[reg];
-}
-
-bool virt16::getFlag(const Flags flag) const
-{
-    switch (flag)
-    {
-    case Z:
-        return z;
-    case G:
-        return g;
-    case L:
-        return l;
-    case E:
-        return e;
-    case C:
-        return c;
-    default:
-        return false;
-    }
-}
-
-unsigned short virt16::getDisp() const
-{
-    return getRegister(DISP);
-}
-
-unsigned short virt16::getPC() const
-{
-    return pc;
-}
-
-void virt16::setMemory(const unsigned int addr, const unsigned short value)
-{
-    memory[addr] = value;
-}
-
-void virt16::setRegister(const Registers reg, const unsigned short value)
-{
-    registers[reg] = value;
-}
-
-void virt16::setFlag(const Flags flag, const bool value)
-{
-    switch (flag)
-    {
-    case Z:
-        z = value;
-        break;
-    case G:
-        g = value;
-        break;
-    case L:
-        l = value;
-        break;
-    case E:
-        e = value;
-        break;
-    case C:
-        c = value;
-        break;
-    default:
-        break;
-    }
-}
-
-void virt16::setDisp(const unsigned short value)
-{
-    setRegister(DISP, value);
-}
-
 void virt16::step()
 {
     // Fetch: two consecutive 16-bit words form one 32-bit instruction (big-endian).
     const unsigned int instr =
-        (static_cast<unsigned int>(getMemory(pc)) << 16) | static_cast<unsigned int>(getMemory(pc + 1));
+        (static_cast<unsigned int>(memory[pc]) << 16) | static_cast<unsigned int>(memory[pc + 1]);
 
     const unsigned char opcode = (instr & 0xF8000000) >> 27;
 
@@ -157,40 +68,40 @@ void virt16::step()
         // LOAD X, #imm — load 16-bit immediate into register X
         X = FIELD_X(instr);
         imm = FIELD_IMM(instr);
-        setRegister(X, imm);
+        registers[X] = imm;
         break;
 
     case LOAD_ADDR:
         // LOAD X, Y — load the word at the address stored in Y into X
         X = FIELD_X(instr);
         Y = FIELD_Y(instr);
-        setRegister(X, getMemory(getRegister(Y)));
+        registers[X] = memory[registers[Y]];
         break;
 
     case STORE_ADDR:
         // STORE X, Y — store value of Y into the memory address stored in X
         X = FIELD_X(instr);
         Y = FIELD_Y(instr);
-        setMemory(getRegister(X), getRegister(Y));
+        memory[registers[X]] = registers[Y];
         break;
 
     case MOV:
         // MOV X, Y — copy register Y into X
         X = FIELD_X(instr);
         Y = FIELD_Y(instr);
-        setRegister(X, getRegister(Y));
+        registers[X] = registers[Y];
         break;
 
     case INC:
         X = FIELD_X(instr);
-        setRegister(X, getRegister(X) + 1);
-        setFlag(Flags::Z, getRegister(X) == 0);
+        registers[X]++;
+        z = registers[X] == 0;
         break;
 
     case DEC:
         X = FIELD_X(instr);
-        setRegister(X, getRegister(X) - 1);
-        setFlag(Flags::Z, getRegister(X) == 0);
+        registers[X]--;
+        z = registers[X] == 0;
         break;
 
     case ADD:
@@ -199,11 +110,11 @@ void virt16::step()
         X = FIELD_X(instr);
         Y = FIELD_Y(instr);
         Z = FIELD_Z(instr);
-        const unsigned int sum = getRegister(Y) + getRegister(Z);
+        const unsigned int sum = registers[Y] + registers[Z];
         const unsigned short result = static_cast<unsigned short>(sum & 0xFFFF);
-        setRegister(X, result);
-        setFlag(Flags::C, sum > 0xFFFF);
-        setFlag(Flags::Z, result == 0);
+        registers[X] = result;
+        c = sum > 0xFFFF;
+        z = result == 0;
         break;
     }
 
@@ -213,12 +124,11 @@ void virt16::step()
         X = FIELD_X(instr);
         Y = FIELD_Y(instr);
         Z = FIELD_Z(instr);
-        const bool borrow = getRegister(Y) < getRegister(Z);
-        const unsigned int diff = getRegister(Y) - getRegister(Z);
-        const unsigned short result = static_cast<unsigned short>(diff & 0xFFFF);
-        setRegister(X, result);
-        setFlag(Flags::C, borrow);
-        setFlag(Flags::Z, result == 0);
+        const bool borrow = registers[Y] < registers[Z];
+        const unsigned short result = static_cast<unsigned short>((registers[Y] - registers[Z]) & 0xFFFF);
+        registers[X] = result;
+        c = borrow;
+        z = result == 0;
         break;
     }
 
@@ -226,41 +136,41 @@ void virt16::step()
         X = FIELD_X(instr);
         Y = FIELD_Y(instr);
         Z = FIELD_Z(instr);
-        setRegister(X, getRegister(Y) & getRegister(Z));
+        registers[X] = registers[Y] & registers[Z];
         break;
 
     case OR:
         X = FIELD_X(instr);
         Y = FIELD_Y(instr);
         Z = FIELD_Z(instr);
-        setRegister(X, getRegister(Y) | getRegister(Z));
+        registers[X] = registers[Y] | registers[Z];
         break;
 
     case XOR:
         X = FIELD_X(instr);
         Y = FIELD_Y(instr);
         Z = FIELD_Z(instr);
-        setRegister(X, getRegister(Y) ^ getRegister(Z));
+        registers[X] = registers[Y] ^ registers[Z];
         break;
 
     case NOT:
         X = FIELD_X(instr);
         Y = FIELD_Y(instr);
-        setRegister(X, ~getRegister(Y));
+        registers[X] = ~registers[Y];
         break;
 
     case SHL:
         X = FIELD_X(instr);
         Y = FIELD_Y(instr);
         Z = FIELD_Z(instr);
-        setRegister(X, getRegister(Y) << getRegister(Z));
+        registers[X] = registers[Y] << registers[Z];
         break;
 
     case SHR:
         X = FIELD_X(instr);
         Y = FIELD_Y(instr);
         Z = FIELD_Z(instr);
-        setRegister(X, getRegister(Y) >> getRegister(Z));
+        registers[X] = registers[Y] >> registers[Z];
         break;
 
     case CMP:
@@ -268,14 +178,10 @@ void virt16::step()
         // CMP X, Y — clear all comparison flags then set based on result
         X = FIELD_X(instr);
         Y = FIELD_Y(instr);
-        const unsigned short xv = getRegister(X);
-        const unsigned short yv = getRegister(Y);
-        setFlag(Flags::E, false);
-        setFlag(Flags::G, false);
-        setFlag(Flags::L, false);
-        setFlag(Flags::E, xv == yv);
-        setFlag(Flags::G, xv > yv);
-        setFlag(Flags::L, xv < yv);
+        e = g = l = false;
+        e = registers[X] == registers[Y];
+        g = registers[X] > registers[Y];
+        l = registers[X] < registers[Y];
         break;
     }
 
@@ -286,57 +192,67 @@ void virt16::step()
 
     case JZ:
         addr = FIELD_IMM(instr);
-        if (getFlag(Flags::Z))
+        if (z)
+        {
             pc = addr;
+        }
         break;
 
     case JE:
         addr = FIELD_IMM(instr);
-        if (getFlag(Flags::E))
+        if (e)
+        {
             pc = addr;
+        }
         break;
 
     case JNE:
         addr = FIELD_IMM(instr);
-        if (!getFlag(Flags::E))
+        if (!e)
+        {
             pc = addr;
+        }
         break;
 
     case JG:
         addr = FIELD_IMM(instr);
-        if (getFlag(Flags::G))
+        if (g)
+        {
             pc = addr;
+        }
         break;
 
     case JL:
         addr = FIELD_IMM(instr);
-        if (getFlag(Flags::L))
+        if (l)
+        {
             pc = addr;
+        }
         break;
 
     case CALL:
         // Push return address onto stack, then jump
         addr = FIELD_IMM(instr);
-        setRegister(SP, getRegister(SP) - 1);
-        setMemory(getRegister(SP), pc);
+        registers[SP]--;
+        memory[registers[SP]] = pc;
         pc = addr - 2; // -2 so the +2 at end of step() lands on addr
         break;
 
     case RET:
-        pc = getMemory(getRegister(SP));
-        setRegister(SP, getRegister(SP) + 1);
+        pc = memory[registers[SP]];
+        registers[SP]++;
         break;
 
     case PUSH:
         X = FIELD_X(instr);
-        setRegister(SP, getRegister(SP) - 1);
-        setMemory(getRegister(SP), getRegister(X));
+        registers[SP]--;
+        memory[registers[SP]] = registers[X];
         break;
 
     case POP:
         X = FIELD_X(instr);
-        setRegister(X, getMemory(getRegister(SP)));
-        setRegister(SP, getRegister(SP) + 1);
+        registers[X] = memory[registers[SP]];
+        registers[SP]++;
         break;
 
     case HLT:
@@ -348,7 +264,7 @@ void virt16::step()
         break;
 
     default:
-        std::cerr << "Invalid opcode: 0x" << std::hex << static_cast<int>(opcode) << "\n";
+        std::cerr << "invalid opcode: 0x" << std::hex << static_cast<int>(opcode) << "\n";
         break;
     }
 
@@ -360,7 +276,7 @@ void virt16::load_program(const char* program) noexcept
     std::ifstream file(program, std::ios::binary);
     if (!file.is_open())
     {
-        std::cerr << "Failed to open file: " << program << "\n";
+        std::cerr << "failed to open file: " << program << "\n";
         return;
     }
 
@@ -368,7 +284,7 @@ void virt16::load_program(const char* program) noexcept
     unsigned short word;
     while (file.read(reinterpret_cast<char*>(&word), sizeof(word)))
     {
-        setMemory(address++, word);
+        memory[address++] = word;
     }
 }
 
@@ -376,7 +292,9 @@ void virt16::run()
 {
     running = true;
     while (running)
+    {
         step();
+    }
 }
 
 void virt16::stop()

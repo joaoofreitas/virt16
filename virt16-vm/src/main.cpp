@@ -77,7 +77,7 @@ int main(int, char**)
 
     // VM + UI state
     Virt16::virt16 vm;
-    vm.setDisp(0x3000);
+    vm.registers[Virt16::DISP] = 0x3000;
     AppState state;
 
     while (!glfwWindowShouldClose(window))
