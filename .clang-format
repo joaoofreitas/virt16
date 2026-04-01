@@ -1,0 +1,24 @@
+# Use LLVM as a base, then override with your specific graphics/embedded rules
+BasedOnStyle: LLVM
+Language: Cpp
+
+# 1. Pointers next to the type
+PointerAlignment: Left
+DerivePointerAlignment: false
+
+# 2. Braces always on the next line
+BreakBeforeBraces: Allman
+
+# 3. No inline code allowed
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortBlocksOnASingleLine: Never
+
+# 4. Indentation (Standard 4 spaces for embedded clarity)
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+# 5. Column limit (Typical for readable driver/shader code)
+ColumnLimit: 100
