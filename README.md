@@ -28,11 +28,17 @@ The Virt16 is a virtual 16-bit computer that is designed to be simple and easy t
   - `P1` - `P4`: Peripheral Registers (16 bits each)
 - **Video Address Register**:
   - `DISP`: Display Register (Contains Address of Current Display Memory)
+- **Interrupt Registers**:
+  - `TVEC`: Timer Interrupt Vector (address of timer ISR)
+  - `KVEC`: Keyboard Interrupt Vector (address of keyboard ISR)
+  - `TPER`: Timer Period (TIME resets and fires when TIME == TPER; 0 = disabled)
 - **Flag Register**:
   - `Z`: Zero Flag (Set automatically when an arithmetic result is zero)
   - `G`: Greater Than Flag
   - `L`: Less Than Flag
   - `E`: Equal Flag
+  - `C`: Carry / Borrow Flag
+  - `I`: Interrupt Enable Flag (set by EI, cleared by DI or on interrupt entry)
 
 ## Instruction Set
 - **OPCODE**: 5 bits (0x00 - 0x1F)
@@ -74,6 +80,9 @@ The Virt16 is a virtual 16-bit computer that is designed to be simple and easy t
 - `POP X`: Pop value from stack into register
 - `HLT`: Halt the program
 - `NOP`: No Operation
+- `EI`: Enable interrupts (sets I flag)
+- `DI`: Disable interrupts (clears I flag)
+- `RETI`: Return from interrupt (like RET, but also sets I flag)
 
 ## Assembler
 ### Opcode Translation Table
@@ -107,9 +116,9 @@ The Virt16 is a virtual 16-bit computer that is designed to be simple and easy t
 | 0x19   | HLT              | Halt the program                                 | HLT                   |
 | 0x1A   | NOP              | No Operation                                     | NOP                   |
 | 0x1B   | JC addr          | Jump if carry flag is set                        | JC 0x0001             |
-| 0x1C   | NOP              | No Operation                                     | NOP                   |
-| 0x1D   | NOP              | No Operation                                     | NOP                   |
-| 0x1E   | NOP              | No Operation                                     | NOP                   |
+| 0x1C   | EI               | Enable interrupts                                | EI                    |
+| 0x1D   | DI               | Disable interrupts                               | DI                    |
+| 0x1E   | RETI             | Return from interrupt (RET + set I flag)         | RETI                  |
 | 0x1F   | NOP              | No Operation                                     | NOP                   |
 
 Preprocessor Directives

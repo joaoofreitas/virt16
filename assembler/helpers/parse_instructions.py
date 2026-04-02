@@ -24,8 +24,11 @@ instructions = {
     'PUSH': 0x17,
     'POP': 0x18,
     'HLT': 0x19,
-    'NOP': 0x1A,
-    'JC':  0x1B,
+    'NOP':  0x1A,
+    'JC':   0x1B,
+    'EI':   0x1C,
+    'DI':   0x1D,
+    'RETI': 0x1E,
 }
 
 # Next, we need to define the registers and their numbers.
@@ -53,8 +56,11 @@ registers = {
     'A': 0x13,
     'P1': 0x14,
     'P2': 0x15, 
-    'P3': 0x16,
-    'P4': 0x17,
+    'P3':   0x16,
+    'P4':   0x17,
+    'TVEC': 0x18,
+    'KVEC': 0x19,
+    'TPER': 0x1A,
 }
 
 # Now, we need to define the preprocessor directives.
@@ -90,6 +96,12 @@ def parse_load(opcode : str, args) -> int:
                             imm_value = int(src[1:], 16)
                         elif src.startswith('#0b'):
                             imm_value = int(src[1:], 2)
+                        elif src.startswith('#.'):
+                            label = src[1:]  # strip '#', keep '.'
+                            if label not in allocated_routines:
+                                print(f"Error: Unknown label {label} in LOAD")
+                                return 0
+                            imm_value = allocated_routines[label]
                         else:
                             imm_value = int(src[1:])
 
@@ -496,6 +508,24 @@ def parse_nop(opcode : str, args) -> int:
     else:
         op = (instructions[opcode] << 27) & 0xFFFFFFFF
         return op
+
+def parse_ei(opcode: str, args) -> int:
+    if len(args) != 0:
+        print(f"Error: Invalid number of arguments for EI instruction")
+        return 0
+    return (instructions[opcode] << 27) & 0xFFFFFFFF
+
+def parse_di(opcode: str, args) -> int:
+    if len(args) != 0:
+        print(f"Error: Invalid number of arguments for DI instruction")
+        return 0
+    return (instructions[opcode] << 27) & 0xFFFFFFFF
+
+def parse_reti(opcode: str, args) -> int:
+    if len(args) != 0:
+        print(f"Error: Invalid number of arguments for RETI instruction")
+        return 0
+    return (instructions[opcode] << 27) & 0xFFFFFFFF
 
 def parse_jc(opcode : str, args) -> int:
     if len(args) != 1:

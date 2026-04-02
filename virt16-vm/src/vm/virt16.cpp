@@ -31,8 +31,11 @@
 #define PUSH 0x17
 #define POP 0x18
 #define HLT 0x19
-#define NOP 0x1A
-#define JC  0x1B
+#define NOP  0x1A
+#define JC   0x1B
+#define EI   0x1C
+#define DI   0x1D
+#define RETI 0x1E
 
 // Instruction field extraction helpers.
 // Each instruction is 32 bits: [OPCODE:5][X:5][Y:5][Z:5][IMM/ADDR:16] (big-endian, MSB first).
@@ -49,7 +52,8 @@ void virt16::reset()
     std::memset(memory, 0, sizeof(memory));
     std::memset(registers, 0, sizeof(registers));
     pc = 0;
-    z = g = l = e = c = false;
+    z = g = l = e = c = i = false;
+    timer_pending = keyboard_pending = false;
 }
 
 void virt16::step()
@@ -257,6 +261,20 @@ void virt16::step()
             pc = addr - 2;
         break;
 
+    case EI:
+        i = true;
+        break;
+
+    case DI:
+        i = false;
+        break;
+
+    case RETI:
+        pc = memory[registers[SP]];
+        registers[SP]++;
+        i = true;
+        break;
+
     case NOP:
         break;
 
@@ -266,6 +284,36 @@ void virt16::step()
     }
 
     pc += 2;
+
+    registers[TIME]++;
+    if (registers[TPER] != 0 && registers[TIME] == registers[TPER])
+    {
+        registers[TIME] = 0;
+        timer_pending = true;
+    }
+
+    if (i)
+    {
+        if (timer_pending)
+        {
+            timer_pending = false;
+            if (registers[TPER] != 0)
+            {
+                i = false;
+                registers[SP]--;
+                memory[registers[SP]] = pc - 2;
+                pc = registers[TVEC];
+            }
+        }
+        else if (keyboard_pending)
+        {
+            i = false;
+            registers[SP]--;
+            memory[registers[SP]] = pc - 2;
+            pc = registers[KVEC];
+            keyboard_pending = false;
+        }
+    }
 }
 
 void virt16::load_program(const char* program) noexcept
