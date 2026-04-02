@@ -75,13 +75,12 @@ def parse_load(opcode : str, args) -> int:
                 dest, src = args
                 dest = dest.strip(',').strip()
                 src = src.strip(',').strip()
-                # Case 1: LOAD R1, R2 (Register-to-Register)
+                # Case 1: LOAD R1, R2 — indirect load: R1 = memory[R2]
                 if dest in registers and src in registers:
-                    # Opcode (5 bits), dest register (5 bits), src register (5 bits), rest are 0 until 32 bits
-                    op = (instructions[opcode] << 27) & 0xFFFFFFFF  # Shift the opcode to the first 5 bits, ensuring 32-bit
-                    dest_reg = (registers[dest] << 22) & 0xFFFFFFFF  # Destination register next 5 bits
-                    src_reg = (registers[src] << 17) & 0xFFFFFFFF    # Source register next 5 bits
-                    return op | dest_reg | src_reg  # Combine opcode, dest, and source into a 32-bit result
+                    op = (0x01 << 27) & 0xFFFFFFFF  # LOAD_ADDR opcode
+                    dest_reg = (registers[dest] << 22) & 0xFFFFFFFF
+                    src_reg = (registers[src] << 17) & 0xFFFFFFFF
+                    return op | dest_reg | src_reg
                 # Case 2: LOAD R1, #IMM (Register-to-Immediate)
                 elif dest in registers and src.startswith('#'):
                     try:
