@@ -139,7 +139,7 @@ static void render_control_buttons(Virt16::virt16* vm)
         vm->stop();
 }
 
-/// Renders an editable table of all 24 general-purpose and special registers.
+/// Renders an editable table of all 27 general-purpose and special registers.
 /// @param vm the running VM instance
 static void render_register_table(Virt16::virt16* vm)
 {
@@ -153,7 +153,7 @@ static void render_register_table(Virt16::virt16* vm)
     ImGui::TableSetupColumn("Value");
     ImGui::TableHeadersRow();
 
-    for (int i = Virt16::R0; i <= Virt16::P4; ++i)
+    for (int i = Virt16::R0; i <= Virt16::TPER; ++i)
     {
         const auto reg = static_cast<Virt16::Registers>(i);
         ImGui::TableNextRow();
@@ -177,7 +177,7 @@ static void render_register_table(Virt16::virt16* vm)
     ImGui::EndTable();
 }
 
-/// Renders the five CPU flags (Z, G, L, E, C) as read-only labels.
+/// Renders the CPU flags (Z, G, L, E, C, I) as read-only labels.
 /// @param vm the running VM instance
 static void render_flags(Virt16::virt16* vm)
 {
@@ -192,6 +192,8 @@ static void render_flags(Virt16::virt16* vm)
     ImGui::Text("E:%d", vm->e);
     ImGui::SameLine();
     ImGui::Text("C:%d", vm->c);
+    ImGui::SameLine();
+    ImGui::Text("I:%d", vm->i);
 }
 
 /// Renders the left register panel (buttons, register table, flags).
@@ -311,20 +313,25 @@ static void render_display_panel(Virt16::virt16* vm, bool& graphics_mode)
     ImGui::EndChild();
 }
 
-/// Renders the hex keyboard (4×4 grid of buttons mapped to peripheral P0).
-static void render_hex_keyboard()
+/// Renders the hex keyboard (4×4 grid of buttons). Pressing a key stores the
+/// key value in P1 and sets keyboard_pending to trigger the KVEC interrupt.
+/// @param vm the running VM instance
+static void render_hex_keyboard(Virt16::virt16* vm)
 {
     ImGui::BeginChild("Peripherals", ImVec2(0, 150), ImGuiChildFlags_Borders);
-    ImGui::Text("Hex Keyboard (P0)");
+    ImGui::Text("Hex Keyboard (P1)");
     for (int i = 0; i < 16; ++i)
     {
         if (i % 4 != 0)
             ImGui::SameLine();
         char label[3];
         std::snprintf(label, sizeof(label), "%X", i);
-        ImGui::Button(label); // key press handling not yet implemented
+        if (ImGui::Button(label))
+        {
+            vm->registers[Virt16::P1] = static_cast<unsigned short>(i);
+            vm->keyboard_pending = true;
+        }
     }
-    ImGui::TextDisabled("(key press not yet implemented)");
     ImGui::EndChild();
 }
 
@@ -367,7 +374,7 @@ static void render_right_panel(Virt16::virt16* vm, const std::vector<std::string
     ImGui::EndChild();
 
     ImGui::SameLine();
-    render_hex_keyboard();
+    render_hex_keyboard(vm);
 
     ImGui::Separator();
     render_debug_panel(vm, debug_info);
