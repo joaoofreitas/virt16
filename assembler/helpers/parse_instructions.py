@@ -25,6 +25,7 @@ instructions = {
     'POP': 0x18,
     'HLT': 0x19,
     'NOP': 0x1A,
+    'JC':  0x1B,
 }
 
 # Next, we need to define the registers and their numbers.
@@ -495,3 +496,17 @@ def parse_nop(opcode : str, args) -> int:
     else:
         op = (instructions[opcode] << 27) & 0xFFFFFFFF
         return op
+
+def parse_jc(opcode : str, args) -> int:
+    if len(args) != 1:
+        print(f"Error: Invalid number of arguments for JC instruction")
+        return 0
+    else:
+        dest = args[0].strip(',').strip()
+        if dest in allocated_routines:
+            op = (instructions[opcode] << 27) & 0xFFFFFFFF
+            dest_addr = allocated_routines[dest]
+            return op | dest_addr
+        else:
+            print(f"Error: Invalid arguments for JC instruction")
+            return 0

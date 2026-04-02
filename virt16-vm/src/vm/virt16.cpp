@@ -32,6 +32,7 @@
 #define POP 0x18
 #define HLT 0x19
 #define NOP 0x1A
+#define JC  0x1B
 
 // Instruction field extraction helpers.
 // Each instruction is 32 bits: [OPCODE:5][X:5][Y:5][Z:5][IMM/ADDR:16] (big-endian, MSB first).
@@ -248,6 +249,12 @@ void virt16::step()
     case HLT:
         running = false;
         pc -= 2; // cancel the +2 below so PC stays on the HLT
+        break;
+
+    case JC:
+        addr = FIELD_IMM(instr);
+        if (c)
+            pc = addr - 2;
         break;
 
     case NOP:

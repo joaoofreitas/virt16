@@ -125,6 +125,8 @@ def assemble_instruction(instruction):
             return parse_jg(opcode, args)
         elif opcode == 'JL':
             return parse_jl(opcode, args)
+        elif opcode == 'JC':
+            return parse_jc(opcode, args)
         elif opcode == 'CALL':
             return parse_call(opcode, args)
         elif opcode == 'RET':

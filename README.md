@@ -67,6 +67,7 @@ The Virt16 is a virtual 16-bit computer that is designed to be simple and easy t
 - `JNE addr`: Jump if not equal
 - `JG addr`: Jump if greater
 - `JL addr`: Jump if less
+- `JC addr`: Jump if carry flag is set
 - `CALL addr`: Call subroutine
 - `RET`: Return from subroutine
 - `PUSH X`: Push value from register onto stack
@@ -105,7 +106,7 @@ The Virt16 is a virtual 16-bit computer that is designed to be simple and easy t
 | 0x18   | POP X            | Pop value from stack into register               | POP R1                |
 | 0x19   | HLT              | Halt the program                                 | HLT                   |
 | 0x1A   | NOP              | No Operation                                     | NOP                   |
-| 0x1B   | NOP              | No Operation                                     | NOP                   |
+| 0x1B   | JC addr          | Jump if carry flag is set                        | JC 0x0001             |
 | 0x1C   | NOP              | No Operation                                     | NOP                   |
 | 0x1D   | NOP              | No Operation                                     | NOP                   |
 | 0x1E   | NOP              | No Operation                                     | NOP                   |
@@ -153,7 +154,7 @@ Example Macro:
 - [ ] Write tests for every single instruction to ensure proper functionality
 
 #### Future Architecture Enhancements
-- [ ] Add JC instruction to jump if the carry flag is set and handle math properly
+- [ ] Add JC instruction to jump if the carry flag is set and handle math properly (implemented — opcode 0x1B)
 - [ ] Add Overflow Flag and instructions to handle signed and unsigned values in the future
 
 
