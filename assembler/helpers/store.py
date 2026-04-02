@@ -13,10 +13,10 @@ def store_macros(lines):
         if line.startswith('@macro'):
             parts = line.split()
             name = parts[1]
-            # args go inside [ ] and are separated by commas
-            args = parts[2].strip('[]').split(',')
-            # remove args empty strings
-            args = [arg for arg in args if arg]
+            # args go inside [ ] and are separated by commas; rejoin all
+            # remaining parts so spaces inside the bracket don't split args
+            args_str = ' '.join(parts[2:]).strip('[]')
+            args = [a.strip() for a in args_str.split(',') if a.strip()]
             # body is everything after the first line until @endmacro
             body = []
             for line in lines[lines.index(line)+1:]:
@@ -122,10 +122,13 @@ def substitute_macros_and_defs(lines):
                     print(f"Error: Incorrect number of arguments for macro {name}")
                     break
 
-                # Replace args with values
+                # Replace args with values; strip trailing commas from call-site
+                # tokens and use word boundaries so arg names don't match
+                # inside instruction mnemonics (e.g. 'n' inside 'AND').
                 for j, arg in enumerate(args):
+                    val = l[j+1].strip(',').strip()
                     for k, word in enumerate(b_copy):
-                        b_copy[k] = re.sub(arg, l[j+1], word)
+                        b_copy[k] = re.sub(r'\b' + re.escape(arg) + r'\b', val, word)
 
                 # Insert body into lines
                 lines[i] = '    ' + b_copy[0] + '\n'
