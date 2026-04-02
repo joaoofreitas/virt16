@@ -23,7 +23,7 @@ The Virt16 is a virtual 16-bit computer that is designed to be simple and easy t
 - **Accumulator**:
   - `A`: Accumulator
 - **General Purpose Registers**:
-  - `R1` - `R15`: General Purpose Registers
+  - `R0` - `R15`: General Purpose Registers
 - **Peripheral Registers**:
   - `P1` - `P4`: Peripheral Registers (16 bits each)
 - **Video Address Register**:
@@ -37,7 +37,7 @@ The Virt16 is a virtual 16-bit computer that is designed to be simple and easy t
 ## Instruction Set
 - **OPCODE**: 5 bits (0x00 - 0x1F)
 - **REGISTER**: 5 bits (0x00 - 0x17)
-- **IMMEDIATE**: 16 bits (0x00 - 0xFF)
+- **IMMEDIATE**: 16 bits (0x0000 - 0xFFFF)
 - **Instruction Sizes**:
   - 20 bits: ADD/SUB/MUL/DIV/MOD/AND/OR/XOR/SHL/SHR/CMP
   - 26 bits: LOAD
@@ -46,10 +46,9 @@ The Virt16 is a virtual 16-bit computer that is designed to be simple and easy t
   - 1 Instruction = 2 words (32 bits)
 
 ### Instructions
-- `LOAD X, #imm`: Load immediate value into A
-- `LOAD X, addr`: Load value from memory into A
-- `STORE addr, X`: Store value from register into memory
-- `STORE addr, #imm`: Store immediate value into memory
+- `LOAD X, #imm`: Load immediate value into register X
+- `LOAD X, Y`: Load from memory at the address held in Y into X
+- `STORE X, Y`: Store register Y into memory at the address held in X
 - `MOV X, Y`: Move value from Y to X
 - `INC X`: Increment X by 1
 - `DEC X`: Decrement X by 1
@@ -80,8 +79,8 @@ The Virt16 is a virtual 16-bit computer that is designed to be simple and easy t
 | OPCode | Instruction      | Description                                      | Example               |
 |--------|------------------|--------------------------------------------------|-----------------------|
 | 0x00   | LOAD X, #IMM     | Load immediate value into X                      | LOAD R1, #0x0001      |
-| 0x01   | LOAD X, addr     | Load value from memory into X                    | LOAD R1, 0x0001       |
-| 0x02   | STORE addr, X    | Store value from X into memory                   | STORE 0x0001, R1      |
+| 0x01   | LOAD X, Y        | Load from memory at address in Y into X          | LOAD R1, R2           |
+| 0x02   | STORE X, Y       | Store Y into memory at address in X              | STORE R1, R2          |
 | 0x03   | MOV X, Y         | Move value from Y to X                           | MOV R1, R2            |
 | 0x04   | INC X            | Increment X by 1                                 | INC R1                |
 | 0x05   | DEC X            | Decrement X by 1                                 | DEC R1                |
@@ -93,7 +92,7 @@ The Virt16 is a virtual 16-bit computer that is designed to be simple and easy t
 | 0x0B   | NOT X, Y         | Bitwise NOT Y and store in X                     | NOT R1, R2            |
 | 0x0C   | SHL X, Y, Z      | Shift Y left by Z bits and store in X            | SHL R1, R2, R3        |
 | 0x0D   | SHR X, Y, Z      | Shift Y right by Z bits and store in X           | SHR R1, R2, R3        |
-| 0x0E   | CMP X, Y         | Compare X and Y - Flags will pop up              | CMP R1, R2            |
+| 0x0E   | CMP X, Y         | Compare X and Y; resets E/G/L then sets flags    | CMP R1, R2            |
 | 0x0F   | JMP addr         | Jump to address                                  | JMP 0x0001            |
 | 0x10   | JZ addr          | Jump if zero                                     | JZ 0x0001             |
 | 0x11   | JE addr          | Jump if equal                                    | JE 0x0001             |

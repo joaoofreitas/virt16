@@ -187,47 +187,37 @@ void virt16::step()
 
     case JMP:
         addr = FIELD_IMM(instr);
-        pc = addr;
+        pc = addr - 2; // -2 so the +2 at end of step() lands on addr
         break;
 
     case JZ:
         addr = FIELD_IMM(instr);
         if (z)
-        {
-            pc = addr;
-        }
+            pc = addr - 2;
         break;
 
     case JE:
         addr = FIELD_IMM(instr);
         if (e)
-        {
-            pc = addr;
-        }
+            pc = addr - 2;
         break;
 
     case JNE:
         addr = FIELD_IMM(instr);
         if (!e)
-        {
-            pc = addr;
-        }
+            pc = addr - 2;
         break;
 
     case JG:
         addr = FIELD_IMM(instr);
         if (g)
-        {
-            pc = addr;
-        }
+            pc = addr - 2;
         break;
 
     case JL:
         addr = FIELD_IMM(instr);
         if (l)
-        {
-            pc = addr;
-        }
+            pc = addr - 2;
         break;
 
     case CALL:
