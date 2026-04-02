@@ -143,19 +143,4 @@ Example Macro:
 - **Font Address**: 0x3100 (Font should be loaded here)
 - **Console Interaction Memory**: Starts at 0x2900
 
-### TODO
-
-#### Assembler
-- [ ] Fix @macros for multiple argument substitution
-- [ ] Implement file imports
-- [ ] Implement a basic standard library for ADD, SUB, MUL, DIV, MOD, and memory manipulation macros
-
-#### VM
-- [ ] Write tests for every single instruction to ensure proper functionality
-
-#### Future Architecture Enhancements
-- [ ] Add JC instruction to jump if the carry flag is set and handle math properly (implemented — opcode 0x1B)
-- [ ] Add Overflow Flag and instructions to handle signed and unsigned values in the future
-
-
 
