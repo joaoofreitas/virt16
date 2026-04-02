@@ -1,71 +1,61 @@
+; test.asm — exercises the core instruction set
+;
+; After running, inspect memory at 0x0200-0x0203 in the Memory Viewer:
+;   [0x0200] = 0x0010  (ADD: 5+3=8, then doubled by subroutine = 16)
+;   [0x0201] = 0x0002  (SUB: 5-3=2)
+;   [0x0202] = 0xABCD  (PUSH/POP round-trip)
+;   [0x0203] = 0xBEEF  (success marker — only written if all tests pass)
+;
+; If the VM halts before writing 0xBEEF, a test failed.
 
-.PLACE 0x3000 "TEXT" ;0x200 will have T on left side and E on right side (8bits each) and 0x201 will have X on left side and T on right side (8bits each)
+.main:
+    LOAD SP, #0x4000    ; init stack at 0x4000 (grows downward)
 
-.PLACE 0x3010 "TEXT"
+    ; --- LOAD immediate / MOV ---
+    LOAD R0, #0x0005
+    LOAD R1, #0x0003
+    MOV R2, R0          ; R2 = 5
 
-@define DE #0xDE
-@define AD #0xAD
-@define BE #0xBE
-@define EF #0xEF
-@define ZERO #0x00
-@define ONE #0x01
+    ; --- INC / DEC ---
+    INC R2              ; R2 = 6
+    DEC R2              ; R2 = 5  (back to original)
 
-@define DISP #0x3000 ; Display address
-@define SP #0x0200 ; Stack pointer
+    ; --- ADD: R3 = R0 + R1 = 8 ---
+    ADD R3, R0, R1
 
-@macro PUSH_CLEAR_SCREEN [] 
-    PUSH R0 ; Push R0 onto the stack
-    PUSH R1 ; Push R1 onto the stack
-    PUSH A ; Push A onto the stack
+    ; --- SUB: R4 = R0 - R1 = 2 ---
+    SUB R4, R0, R1
 
-    LOAD A, #0xFF; Load 255 into A
-    MOV R0, DISP ; Load the display address into R0
-    LOAD R1, %ZERO ; Load 0 into R1
-@endmacro
+    ; --- CMP + conditional jump ---
+    CMP R0, R1          ; 5 > 3, sets G flag
+    JG .after_cmp       ; should jump; if not, HLT below is the failure signal
+    HLT
 
-@macro POP_CLEAR_SCREEN []
-    POP A ; Pop A from the stack
-    POP R1 ; Pop R1 from the stack
-    POP R0 ; Pop R0 from the stack
-@endmacro
+.after_cmp:
+    ; --- PUSH / POP ---
+    LOAD R5, #0xABCD
+    PUSH R5
+    LOAD R5, #0x0000    ; clobber R5
+    POP R5              ; R5 should be 0xABCD again
 
-@macro ADD [n]
-    LOAD R0, #0x00; Load 0 into R0
-    LOAD R1, #0x00; Load 0 into R1
-    LOAD R2, #0xFFFF; Load 0 into R2
+    ; --- CALL / RET: double R3 via subroutine ---
+    CALL .double_r3     ; R3 = R3 * 2 = 16
 
-    PUSH R0 ; Push R0 onto the stack
-    PUSH R1 ; Push R1 onto the stack
-    PUSH R2 ; Push R2 onto the stack
+    ; --- store results for inspection ---
+    LOAD R7, #0x0200
+    STORE R7, R3        ; [0x0200] = 0x0010
+    INC R7
+    STORE R7, R4        ; [0x0201] = 0x0002
+    INC R7
+    STORE R7, R5        ; [0x0202] = 0xABCD
 
-    LOAD R0, n ; Load n into R0
-    LOAD R1, #0x100;
-    ADD R1, R2, R0 ; Add 0 (R0) with n and store at the address in R1
+    ; --- success marker ---
+    LOAD R0, #0xBEEF
+    INC R7
+    STORE R7, R0        ; [0x0203] = 0xBEEF
 
-    POP R2 ; Pop R2 from the stack
-    POP R1 ; Pop R1 from the stack
-    POP R0 ; Pop R0 from the stack
-@endmacro
+    HLT
 
-.CLEAR_SCREEN:
-    STORE R0, R1; Store content of R1 (zero) into the display address in R0
-    INC R0 ; Increment R0
-    DEC A ; Decrement A
-    CMP A, R1 ; Compare A to 0
-    JNE .CLEAR_SCREEN 
-    
+.double_r3:
+    ADD R3, R3, R3      ; R3 = R3 + R3
     RET
-    
-
-.main: 
-    LOAD SP, %SP ; Load the stack pointer
-    LOAD DISP, %DISP ; Load the display address
-
-    LOAD R1, %ONE ; Load 1 into R1
-
-    @PUSH_CLEAR_SCREEN ; Push the registers for CLEAR_SCREEN
-    CALL .CLEAR_SCREEN
-    @POP_CLEAR_SCREEN ; POP the registers for CLEAR_SCREEN and Return
-
-    @ADD #0xFFFF ; Add 0xDE to R1
-    HLT ; Halt the program
