@@ -66,7 +66,7 @@ RoutineName:        ; Label of the routine
 import sys
 import os
 # Helpers folder contains cleaners.py with functions
-from helpers.parser import *
+from helpers.parser import resolve_imports, remove_comments, remove_empty_lines
 from helpers.store import *
 from helpers.parse_instructions import *
 
@@ -166,6 +166,7 @@ if __name__ == '__main__':
 
     with open(sys.argv[1], 'r') as f:
         lines = f.readlines()
+    lines = resolve_imports(lines, os.path.dirname(os.path.abspath(sys.argv[1])))
     print("Original Program:")
     for line in lines:
         print(line, end='')
