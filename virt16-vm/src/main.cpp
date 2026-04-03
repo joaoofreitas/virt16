@@ -118,10 +118,6 @@ int main(int, char**)
                 render_monitor_tab(&vm, state);
                 ImGui::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Test Instructions"))
-            {
-                ImGui::EndTabItem();
-            }
             ImGui::EndTabBar();
         }
 

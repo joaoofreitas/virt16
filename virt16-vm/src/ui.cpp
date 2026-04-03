@@ -376,13 +376,7 @@ static void render_right_panel(Virt16::virt16* vm, const std::vector<std::string
 {
     ImGui::BeginChild("RightPanel", ImVec2(0, 0), ImGuiChildFlags_Borders);
 
-    // Top row: exclusive registers (left) + hex keyboard (right)
-    ImGui::BeginChild("ExclusiveRegisters", ImVec2(300, 150), ImGuiChildFlags_Borders);
-    ImGui::Text("DISP: 0x%04X", vm->registers[Virt16::DISP]);
-    ImGui::TextDisabled("TODO: exclusive register table");
-    ImGui::EndChild();
-
-    ImGui::SameLine();
+    // Top row: peripherals
     render_hex_keyboard(vm);
 
     ImGui::Separator();
