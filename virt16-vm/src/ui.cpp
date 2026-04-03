@@ -1,6 +1,7 @@
 #include "ui.h"
 
 #include "imgui.h"
+#include "imgui_memory_editor.h"
 #include "vm/virt16.h"
 
 #include <cstdio>
@@ -131,99 +132,58 @@ void render_load_rom_tab(Virt16::virt16* vm, AppState& state)
 
 void render_memory_viewer_tab(Virt16::virt16* vm)
 {
-    static uint16_t goto_address = 0;
-    static char address_input[5] = {};
-
-    ImGui::InputText("##AddressInput", address_input, sizeof(address_input), ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::SameLine();
-    if (ImGui::Button("Visit"))
-        goto_address = static_cast<uint16_t>(std::strtol(address_input, nullptr, 16));
-
-    if (!ImGui::BeginTable("MemoryDump", 17, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
-        return;
-
-    ImGui::TableSetupColumn("Address");
-    for (int col = 0; col < 16; ++col)
-    {
-        char header[3];
-        std::snprintf(header, sizeof(header), "%X", col);
-        ImGui::TableSetupColumn(header);
-    }
-    ImGui::TableHeadersRow();
-
-    static constexpr int TOTAL_WORDS = 16384;
-    static constexpr int COLS = 16;
-
-    for (int row = 0; row < TOTAL_WORDS / COLS; ++row)
-    {
-        ImGui::TableNextRow();
-
-        if (goto_address > 0 && row == goto_address / COLS)
-        {
-            ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, IM_COL32(255, 0, 0, 255));
-            ImGui::SetScrollHereY();
-            goto_address = 0;
-        }
-
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("0x%04X", row * COLS);
-
-        for (int col = 0; col < COLS; ++col)
-        {
-            ImGui::TableSetColumnIndex(col + 1);
-
-            const int addr = row * COLS + col;
-            char buf[5];
-            std::snprintf(buf, sizeof(buf), "%04X", vm->memory[addr]);
-
-            float text_width = ImGui::CalcTextSize(buf).x;
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetColumnWidth() - text_width) / 2.0f);
-
-            char label[8];
-            std::snprintf(label, sizeof(label), "##%04X", addr);
-            if (ImGui::InputText(
-                    label, buf, sizeof(buf), ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase))
-            {
-                vm->memory[addr] = static_cast<unsigned short>(std::stoul(buf, nullptr, 16));
-            }
-        }
-    }
-
-    ImGui::EndTable();
+    static MemoryEditor mem_edit;
+    mem_edit.Cols = 16;
+    mem_edit.OptShowOptions = true;
+    mem_edit.OptShowDataPreview = true;
+    mem_edit.OptShowAscii = true;
+    mem_edit.ReadOnly = false;
+    mem_edit.DrawContents(vm->memory, sizeof(vm->memory));
 }
 
 /// Renders the control buttons (Step / Reset / Run / Stop) for the VM.
 /// @param vm the running VM instance
 static void render_control_buttons(Virt16::virt16* vm, AppState& state)
 {
-    if (ImGui::Button("Step"))
+    ImGui::SeparatorText("Controls");
+    if (ImGui::Button("Step", ImVec2(84.0f, 0.0f)))
         vm->step();
     ImGui::SameLine();
-    if (ImGui::Button("Reset"))
+    if (ImGui::Button("Reset", ImVec2(84.0f, 0.0f)))
     {
         vm->reset();
         state.auto_run = false;
     }
-    ImGui::SameLine();
-    if (ImGui::Button("Run"))
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.20f, 0.50f, 0.30f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.60f, 0.36f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.17f, 0.43f, 0.26f, 1.0f));
+    if (ImGui::Button("Run", ImVec2(84.0f, 0.0f)))
     {
         vm->start();
         state.auto_run = true;
     }
+    ImGui::PopStyleColor(3);
     ImGui::SameLine();
-    if (ImGui::Button("Stop"))
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.58f, 0.22f, 0.22f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.70f, 0.27f, 0.27f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.50f, 0.19f, 0.19f, 1.0f));
+    if (ImGui::Button("Stop", ImVec2(84.0f, 0.0f)))
     {
         vm->stop();
         state.auto_run = false;
     }
+    ImGui::PopStyleColor(3);
+
+    ImGui::TextColored(state.auto_run ? ImVec4(0.40f, 0.90f, 0.55f, 1.0f) : ImVec4(0.75f, 0.75f, 0.80f, 1.0f),
+                       "Status: %s",
+                       state.auto_run ? "Running" : "Idle");
 }
 
 /// Renders an editable table of all 27 general-purpose and special registers.
 /// @param vm the running VM instance
 static void render_register_table(Virt16::virt16* vm)
 {
-    ImGui::Separator();
-    ImGui::Text("Registers");
+    ImGui::SeparatorText("Registers");
 
     if (!ImGui::BeginTable("Registers", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
         return;
@@ -260,8 +220,7 @@ static void render_register_table(Virt16::virt16* vm)
 /// @param vm the running VM instance
 static void render_flags(Virt16::virt16* vm)
 {
-    ImGui::Separator();
-    ImGui::Text("Flags");
+    ImGui::SeparatorText("Flags");
     ImGui::Text("Z:%d", vm->z);
     ImGui::SameLine();
     ImGui::Text("G:%d", vm->g);
@@ -371,8 +330,10 @@ static void render_display_panel(Virt16::virt16* vm, bool& graphics_mode)
 {
     ImGui::BeginChild("DisplayPanel", ImVec2(512, 0), ImGuiChildFlags_Borders);
 
+    ImGui::SeparatorText("Display");
     ImGui::Text("Display Mode: %s", graphics_mode ? "Graphics" : "Console");
-    if (ImGui::Button("Toggle Mode"))
+    ImGui::SameLine();
+    if (ImGui::Button("Toggle", ImVec2(90.0f, 0.0f)))
         graphics_mode = !graphics_mode;
 
     // Center the canvas within the panel
@@ -397,20 +358,22 @@ static void render_display_panel(Virt16::virt16* vm, bool& graphics_mode)
 /// @param vm the running VM instance
 static void render_hex_keyboard(Virt16::virt16* vm)
 {
-    ImGui::BeginChild("Peripherals", ImVec2(0, 150), ImGuiChildFlags_Borders);
-    ImGui::Text("Hex Keyboard (P1)");
+    ImGui::BeginChild("Peripherals", ImVec2(0, 175), ImGuiChildFlags_Borders);
+    ImGui::SeparatorText("Hex Keyboard (P1)");
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 2.0f));
     for (int i = 0; i < 16; ++i)
     {
         if (i % 4 != 0)
             ImGui::SameLine();
         char label[3];
         std::snprintf(label, sizeof(label), "%X", i);
-        if (ImGui::Button(label))
+        if (ImGui::Button(label, ImVec2(32.0f, 24.0f)))
         {
             vm->registers[Virt16::P1] = static_cast<unsigned short>(i);
             vm->keyboard_pending = true;
         }
     }
+    ImGui::PopStyleVar();
     ImGui::EndChild();
 }
 
@@ -419,7 +382,8 @@ static void render_hex_keyboard(Virt16::virt16* vm)
 /// @param debug_info one assembled instruction string per index
 static void render_debug_panel(Virt16::virt16* vm, const std::vector<std::string>& debug_info)
 {
-    ImGui::BeginChild("DebugInfo", ImVec2(0, 0), ImGuiChildFlags_Borders);
+    ImGui::BeginChild("DebugInfo", ImVec2(0, 300), ImGuiChildFlags_Borders);
+    ImGui::SeparatorText("Debug Trace");
     ImGui::Text("PC: 0x%04X", vm->pc);
 
     for (int i = 0; i < static_cast<int>(debug_info.size()); ++i)
