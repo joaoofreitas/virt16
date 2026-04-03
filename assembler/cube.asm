@@ -43,11 +43,11 @@
 ;   0x0883  cos_y            0x0889  x1 (after Y rotation)
 ;   0x0884  sin_x            0x088A  z1 (after Y rotation)
 ;   0x0885  cos_x            0x088B  frame flag (set by timer ISR)
+;   0x088C  front buffer base 0x088D back buffer base
 ;   0x0940  projected coords (8 x 2 words: sx, sy)
 
 .main:
     LOAD SP, #0x4000
-    LOAD DISP, #0x3000
     LOAD R0, #0
     LOAD R1, #0x0880
     STORE R1, R0
@@ -55,9 +55,17 @@
     STORE R1, R0
     LOAD R1, #0x088B
     STORE R1, R0
+    ; init double buffers
+    LOAD R0, #0x3000
+    LOAD R1, #0x088C
+    STORE R1, R0
+    LOAD R0, #0x3400
+    LOAD R1, #0x088D
+    STORE R1, R0
+    LOAD DISP, #0x3000
     ; set up timer interrupt for frame pacing
     LOAD TVEC, #.timer_isr
-    LOAD TPER, #0x6000
+    LOAD TPER, #0x3000
     EI
     JMP .frame
 
@@ -72,11 +80,22 @@
     LOAD R0, #0x088B
     LOAD R1, #0
     STORE R0, R1
+    ; render to back buffer in A while front remains on DISP
+    LOAD R0, #0x088D
+    LOAD A, R0
     ; render
     CALL .clear
     CALL .trig
     CALL .project
     CALL .edges
+    ; publish completed back buffer, then swap front/back pointers
+    MOV DISP, A
+    LOAD R0, #0x088C
+    LOAD R1, R0
+    LOAD R2, #0x088D
+    LOAD R3, R2
+    STORE R0, R3
+    STORE R2, R1
     ; advance angle_y by 3, angle_x by 1
     LOAD R2, #0x00FF
     LOAD R1, #0x0880
@@ -94,9 +113,10 @@
 
 ; Fill the 32x32 display with black
 .clear:
-    LOAD R0, #0x3000
+    MOV R0, A
     LOAD R1, #0
-    LOAD R2, #0x3400
+    LOAD R2, #0x0400
+    ADD R2, R0, R2
 .clear_lp:
     STORE R0, R1
     INC R0
@@ -345,8 +365,7 @@
     LOAD R0, #5
     SHL R0, R7, R0
     ADD R0, R0, R6
-    LOAD R1, #0x3000
-    ADD R0, R0, R1
+    ADD R0, R0, A
     STORE R0, R5
 
 .ln_skip:
