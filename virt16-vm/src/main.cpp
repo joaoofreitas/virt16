@@ -14,8 +14,8 @@
 
 #include <cstdio>
 
-#include "ui.h"
-#include "vm/virt16.h"
+#include "ui.hpp"
+#include "vm/virt16.hpp"
 
 static constexpr int WINDOW_WIDTH = 1280;
 static constexpr int WINDOW_HEIGHT = 720;

@@ -1,15 +1,12 @@
-#include "ui.h"
+#include "ui.hpp"
 
 #include "imgui.h"
 #include "imgui_memory_editor.h"
-#include "vm/virt16.h"
 
 #include <cstdio>
 #include <cstring>
 #include <fstream>
-#include <iostream>
 #include <string>
-#include <vector>
 
 static constexpr int DISPLAY_PIXELS = 32; // graphics canvas is 32x32 pixels
 static constexpr int UPSCALE = 16;        // each graphics pixel is 16x16 screen pixels

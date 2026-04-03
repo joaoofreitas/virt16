@@ -1,5 +1,4 @@
-#ifndef VIRT16_H
-#define VIRT16_H
+#pragma once
 
 #include <map>
 #include <string>
@@ -40,17 +39,15 @@ enum Registers
     TPER
 };
 
-static const char* register_names[] = {"R0",  "R1",   "R2",   "R3",  "R4",  "R5",  "R6",  "R7",
-                                       "R8",  "R9",   "R10",  "R11", "R12", "R13", "R14", "R15",
-                                       "SP",  "DISP", "TIME", "A",   "P1",  "P2",  "P3",  "P4",
-                                       "TVEC", "KVEC", "TPER"};
+static const char* register_names[] = {"R0",   "R1",  "R2",  "R3",  "R4",  "R5",  "R6",   "R7",   "R8",
+                                       "R9",   "R10", "R11", "R12", "R13", "R14", "R15",  "SP",   "DISP",
+                                       "TIME", "A",   "P1",  "P2",  "P3",  "P4",  "TVEC", "KVEC", "TPER"};
 
 static const std::map<std::string, int> register_map = {
-    {"R0", R0},     {"R1", R1},   {"R2", R2},   {"R3", R3},   {"R4", R4},   {"R5", R5},
-    {"R6", R6},     {"R7", R7},   {"R8", R8},   {"R9", R9},   {"R10", R10}, {"R11", R11},
-    {"R12", R12},   {"R13", R13}, {"R14", R14}, {"R15", R15}, {"SP", SP},   {"DISP", DISP},
-    {"TIME", TIME}, {"A", A},     {"P1", P1},   {"P2", P2},   {"P3", P3},   {"P4", P4},
-    {"TVEC", TVEC}, {"KVEC", KVEC}, {"TPER", TPER}};
+    {"R0", R0},   {"R1", R1},   {"R2", R2}, {"R3", R3},     {"R4", R4},     {"R5", R5},    {"R6", R6},
+    {"R7", R7},   {"R8", R8},   {"R9", R9}, {"R10", R10},   {"R11", R11},   {"R12", R12},  {"R13", R13},
+    {"R14", R14}, {"R15", R15}, {"SP", SP}, {"DISP", DISP}, {"TIME", TIME}, {"A", A},      {"P1", P1},
+    {"P2", P2},   {"P3", P3},   {"P4", P4}, {"TVEC", TVEC}, {"KVEC", KVEC}, {"TPER", TPER}};
 
 enum Flags
 {
@@ -76,7 +73,7 @@ class virt16
     bool c = false; // carry / borrow
     bool i = false; // interrupts enabled
 
-    bool timer_pending   = false;
+    bool timer_pending = false;
     bool keyboard_pending = false;
 
     virt16() = default;
@@ -111,5 +108,3 @@ class virt16
 };
 
 } // namespace Virt16
-
-#endif // VIRT16_H

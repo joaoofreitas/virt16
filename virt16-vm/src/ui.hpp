@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "vm/virt16.h"
+#include "vm/virt16.hpp"
 
 /// Mutable UI state shared across tabs and persisted between frames.
 struct AppState
