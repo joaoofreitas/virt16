@@ -1,62 +1,46 @@
 #pragma once
 
-#include <map>
-#include <string>
-
-#define MEMORY_SIZE 65536
-
 namespace Virt16
 {
 
+inline constexpr int MEMORY_SIZE = 65536;
+
+/// General-purpose and special register indices used to address the registers array.
 enum Registers
 {
-    R0,
-    R1,
-    R2,
-    R3,
-    R4,
-    R5,
-    R6,
-    R7,
-    R8,
-    R9,
-    R10,
-    R11,
-    R12,
-    R13,
-    R14,
-    R15,
-    SP,
-    DISP,
-    TIME,
-    A,
-    P1,
-    P2,
-    P3,
-    P4,
-    TVEC,
-    KVEC,
-    TPER
+    R0,   // general purpose
+    R1,   // general purpose
+    R2,   // general purpose
+    R3,   // general purpose
+    R4,   // general purpose
+    R5,   // general purpose
+    R6,   // general purpose
+    R7,   // general purpose
+    R8,   // general purpose
+    R9,   // general purpose
+    R10,  // general purpose
+    R11,  // general purpose
+    R12,  // general purpose
+    R13,  // general purpose
+    R14,  // general purpose
+    R15,  // general purpose
+    SP,   // stack pointer
+    DISP, // display base address in VRAM
+    TIME, // timer counter, auto-incremented each step
+    A,    // accumulator
+    P1,   // peripheral data register 1 (keyboard input)
+    P2,   // peripheral data register 2
+    P3,   // peripheral data register 3
+    P4,   // peripheral data register 4
+    TVEC, // timer interrupt service routine address
+    KVEC, // keyboard interrupt service routine address
+    TPER  // timer period: TIME resets and fires when TIME == TPER; 0 = disabled
 };
 
-static const char* register_names[] = {"R0",   "R1",  "R2",  "R3",  "R4",  "R5",  "R6",   "R7",   "R8",
-                                       "R9",   "R10", "R11", "R12", "R13", "R14", "R15",  "SP",   "DISP",
-                                       "TIME", "A",   "P1",  "P2",  "P3",  "P4",  "TVEC", "KVEC", "TPER"};
-
-static const std::map<std::string, int> register_map = {
-    {"R0", R0},   {"R1", R1},   {"R2", R2}, {"R3", R3},     {"R4", R4},     {"R5", R5},    {"R6", R6},
-    {"R7", R7},   {"R8", R8},   {"R9", R9}, {"R10", R10},   {"R11", R11},   {"R12", R12},  {"R13", R13},
-    {"R14", R14}, {"R15", R15}, {"SP", SP}, {"DISP", DISP}, {"TIME", TIME}, {"A", A},      {"P1", P1},
-    {"P2", P2},   {"P3", P3},   {"P4", P4}, {"TVEC", TVEC}, {"KVEC", KVEC}, {"TPER", TPER}};
-
-enum Flags
-{
-    Z,
-    G,
-    L,
-    E,
-    C
-};
+/// Human-readable names for each register, indexed by Registers enum value.
+inline constexpr const char* register_names[] = {"R0",   "R1",  "R2",  "R3",  "R4",  "R5",  "R6",   "R7",   "R8",
+                                                 "R9",   "R10", "R11", "R12", "R13", "R14", "R15",  "SP",   "DISP",
+                                                 "TIME", "A",   "P1",  "P2",  "P3",  "P4",  "TVEC", "KVEC", "TPER"};
 
 class virt16
 {

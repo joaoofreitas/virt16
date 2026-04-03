@@ -1,48 +1,71 @@
 #include "virt16.hpp"
 
+#include <cstdio>
 #include <cstring>
 #include <fstream>
-#include <iostream>
 
-// Opcode constants — 5-bit values packed into the top of each 32-bit instruction.
-#define LOAD_IMM 0x00
-#define LOAD_ADDR 0x01
-#define STORE_ADDR 0x02
-#define MOV 0x03
-#define INC 0x04
-#define DEC 0x05
-#define ADD 0x06
-#define SUB 0x07
-#define AND 0x08
-#define OR 0x09
-#define XOR 0x0A
-#define NOT 0x0B
-#define SHL 0x0C
-#define SHR 0x0D
-#define CMP 0x0E
-#define JMP 0x0F
-#define JZ 0x10
-#define JE 0x11
-#define JNE 0x12
-#define JG 0x13
-#define JL 0x14
-#define CALL 0x15
-#define RET 0x16
-#define PUSH 0x17
-#define POP 0x18
-#define HLT 0x19
-#define NOP 0x1A
-#define JC 0x1B
-#define EI 0x1C
-#define DI 0x1D
-#define RETI 0x1E
+namespace
+{
 
-// Instruction field extraction helpers.
-// Each instruction is 32 bits: [OPCODE:5][X:5][Y:5][Z:5][IMM/ADDR:16] (big-endian, MSB first).
-#define FIELD_X(instr) static_cast<Registers>(((instr) & 0b00000111110000000000000000000000) >> 22)
-#define FIELD_Y(instr) static_cast<Registers>(((instr) & 0b00000000001111100000000000000000) >> 17)
-#define FIELD_Z(instr) static_cast<Registers>(((instr) & 0b00000000000000011111000000000000) >> 12)
-#define FIELD_IMM(instr) static_cast<unsigned short>((instr) & 0x0000FFFF)
+// 5-bit opcode values packed into bits 31–27 of each 32-bit instruction.
+enum Opcode : unsigned char
+{
+    LOAD_IMM = 0x00,
+    LOAD_ADDR = 0x01,
+    STORE_ADDR = 0x02,
+    MOV = 0x03,
+    INC = 0x04,
+    DEC = 0x05,
+    ADD = 0x06,
+    SUB = 0x07,
+    AND = 0x08,
+    OR = 0x09,
+    XOR = 0x0A,
+    NOT = 0x0B,
+    SHL = 0x0C,
+    SHR = 0x0D,
+    CMP = 0x0E,
+    JMP = 0x0F,
+    JZ = 0x10,
+    JE = 0x11,
+    JNE = 0x12,
+    JG = 0x13,
+    JL = 0x14,
+    CALL = 0x15,
+    RET = 0x16,
+    PUSH = 0x17,
+    POP = 0x18,
+    HLT = 0x19,
+    NOP = 0x1A,
+    JC = 0x1B,
+    EI = 0x1C,
+    DI = 0x1D,
+    RETI = 0x1E
+};
+
+// Instruction layout: [OPCODE:5][X:5][Y:5][Z:5][IMM/ADDR:16] — big-endian, MSB first.
+
+[[nodiscard]] inline Virt16::Registers field_x(unsigned int instr)
+{
+    return static_cast<Virt16::Registers>((instr & 0x07C00000u) >> 22);
+}
+
+[[nodiscard]] inline Virt16::Registers field_y(unsigned int instr)
+{
+    return static_cast<Virt16::Registers>((instr & 0x003E0000u) >> 17);
+}
+
+[[nodiscard]] inline Virt16::Registers field_z(unsigned int instr)
+{
+    return static_cast<Virt16::Registers>((instr & 0x0001F000u) >> 12);
+}
+
+[[nodiscard]] inline unsigned short field_imm(unsigned int instr)
+{
+    return static_cast<unsigned short>(instr & 0x0000FFFFu);
+}
+
+} // anonymous namespace
 
 namespace Virt16
 {
@@ -62,7 +85,7 @@ void virt16::step()
     const unsigned int instr =
         (static_cast<unsigned int>(memory[pc]) << 16) | static_cast<unsigned int>(memory[pc + 1]);
 
-    const unsigned char opcode = (instr & 0xF8000000) >> 27;
+    const unsigned char opcode = (instr & 0xF8000000u) >> 27;
 
     Registers X, Y, Z;
     unsigned short addr, imm;
@@ -71,50 +94,50 @@ void virt16::step()
     {
     case LOAD_IMM:
         // LOAD X, #imm — load 16-bit immediate into register X
-        X = FIELD_X(instr);
-        imm = FIELD_IMM(instr);
+        X = field_x(instr);
+        imm = field_imm(instr);
         registers[X] = imm;
         break;
 
     case LOAD_ADDR:
         // LOAD X, Y — load the word at the address stored in Y into X
-        X = FIELD_X(instr);
-        Y = FIELD_Y(instr);
+        X = field_x(instr);
+        Y = field_y(instr);
         registers[X] = memory[registers[Y]];
         break;
 
     case STORE_ADDR:
         // STORE X, Y — store value of Y into the memory address stored in X
-        X = FIELD_X(instr);
-        Y = FIELD_Y(instr);
+        X = field_x(instr);
+        Y = field_y(instr);
         memory[registers[X]] = registers[Y];
         break;
 
     case MOV:
         // MOV X, Y — copy register Y into X
-        X = FIELD_X(instr);
-        Y = FIELD_Y(instr);
+        X = field_x(instr);
+        Y = field_y(instr);
         registers[X] = registers[Y];
         break;
 
     case INC:
-        X = FIELD_X(instr);
+        X = field_x(instr);
         registers[X]++;
         z = registers[X] == 0;
         break;
 
     case DEC:
-        X = FIELD_X(instr);
+        X = field_x(instr);
         registers[X]--;
         z = registers[X] == 0;
         break;
 
     case ADD:
     {
-        // ADD X, Y, Z — result stored directly in register X; C set on 16-bit overflow
-        X = FIELD_X(instr);
-        Y = FIELD_Y(instr);
-        Z = FIELD_Z(instr);
+        // ADD X, Y, Z — X = Y + Z; sets C on 16-bit overflow, Z if result is zero
+        X = field_x(instr);
+        Y = field_y(instr);
+        Z = field_z(instr);
         const unsigned int sum = registers[Y] + registers[Z];
         const unsigned short result = static_cast<unsigned short>(sum & 0xFFFF);
         registers[X] = result;
@@ -125,10 +148,10 @@ void virt16::step()
 
     case SUB:
     {
-        // SUB X, Y, Z — result stored directly in register X; C set on borrow (underflow)
-        X = FIELD_X(instr);
-        Y = FIELD_Y(instr);
-        Z = FIELD_Z(instr);
+        // SUB X, Y, Z — X = Y - Z; sets C on borrow (underflow), Z if result is zero
+        X = field_x(instr);
+        Y = field_y(instr);
+        Z = field_z(instr);
         const bool borrow = registers[Y] < registers[Z];
         const unsigned short result = static_cast<unsigned short>((registers[Y] - registers[Z]) & 0xFFFF);
         registers[X] = result;
@@ -138,51 +161,51 @@ void virt16::step()
     }
 
     case AND:
-        X = FIELD_X(instr);
-        Y = FIELD_Y(instr);
-        Z = FIELD_Z(instr);
+        X = field_x(instr);
+        Y = field_y(instr);
+        Z = field_z(instr);
         registers[X] = registers[Y] & registers[Z];
         break;
 
     case OR:
-        X = FIELD_X(instr);
-        Y = FIELD_Y(instr);
-        Z = FIELD_Z(instr);
+        X = field_x(instr);
+        Y = field_y(instr);
+        Z = field_z(instr);
         registers[X] = registers[Y] | registers[Z];
         break;
 
     case XOR:
-        X = FIELD_X(instr);
-        Y = FIELD_Y(instr);
-        Z = FIELD_Z(instr);
+        X = field_x(instr);
+        Y = field_y(instr);
+        Z = field_z(instr);
         registers[X] = registers[Y] ^ registers[Z];
         break;
 
     case NOT:
-        X = FIELD_X(instr);
-        Y = FIELD_Y(instr);
+        X = field_x(instr);
+        Y = field_y(instr);
         registers[X] = ~registers[Y];
         break;
 
     case SHL:
-        X = FIELD_X(instr);
-        Y = FIELD_Y(instr);
-        Z = FIELD_Z(instr);
+        X = field_x(instr);
+        Y = field_y(instr);
+        Z = field_z(instr);
         registers[X] = registers[Y] << registers[Z];
         break;
 
     case SHR:
-        X = FIELD_X(instr);
-        Y = FIELD_Y(instr);
-        Z = FIELD_Z(instr);
+        X = field_x(instr);
+        Y = field_y(instr);
+        Z = field_z(instr);
         registers[X] = registers[Y] >> registers[Z];
         break;
 
     case CMP:
     {
-        // CMP X, Y — clear all comparison flags then set based on result
-        X = FIELD_X(instr);
-        Y = FIELD_Y(instr);
+        // CMP X, Y — clear all comparison flags, then set based on result
+        X = field_x(instr);
+        Y = field_y(instr);
         e = g = l = false;
         e = registers[X] == registers[Y];
         g = registers[X] > registers[Y];
@@ -191,43 +214,43 @@ void virt16::step()
     }
 
     case JMP:
-        addr = FIELD_IMM(instr);
+        addr = field_imm(instr);
         pc = addr - 2; // -2 so the +2 at end of step() lands on addr
         break;
 
     case JZ:
-        addr = FIELD_IMM(instr);
+        addr = field_imm(instr);
         if (z)
             pc = addr - 2;
         break;
 
     case JE:
-        addr = FIELD_IMM(instr);
+        addr = field_imm(instr);
         if (e)
             pc = addr - 2;
         break;
 
     case JNE:
-        addr = FIELD_IMM(instr);
+        addr = field_imm(instr);
         if (!e)
             pc = addr - 2;
         break;
 
     case JG:
-        addr = FIELD_IMM(instr);
+        addr = field_imm(instr);
         if (g)
             pc = addr - 2;
         break;
 
     case JL:
-        addr = FIELD_IMM(instr);
+        addr = field_imm(instr);
         if (l)
             pc = addr - 2;
         break;
 
     case CALL:
         // Push return address onto stack, then jump
-        addr = FIELD_IMM(instr);
+        addr = field_imm(instr);
         registers[SP]--;
         memory[registers[SP]] = pc;
         pc = addr - 2; // -2 so the +2 at end of step() lands on addr
@@ -239,13 +262,13 @@ void virt16::step()
         break;
 
     case PUSH:
-        X = FIELD_X(instr);
+        X = field_x(instr);
         registers[SP]--;
         memory[registers[SP]] = registers[X];
         break;
 
     case POP:
-        X = FIELD_X(instr);
+        X = field_x(instr);
         registers[X] = memory[registers[SP]];
         registers[SP]++;
         break;
@@ -256,7 +279,7 @@ void virt16::step()
         break;
 
     case JC:
-        addr = FIELD_IMM(instr);
+        addr = field_imm(instr);
         if (c)
             pc = addr - 2;
         break;
@@ -270,6 +293,7 @@ void virt16::step()
         break;
 
     case RETI:
+        // Return from interrupt and re-enable interrupts
         pc = memory[registers[SP]];
         registers[SP]++;
         i = true;
@@ -279,13 +303,14 @@ void virt16::step()
         break;
 
     default:
-        std::cerr << "invalid opcode: 0x" << std::hex << static_cast<int>(opcode) << "\n";
+        fprintf(stderr, "invalid opcode: 0x%02X\n", static_cast<int>(opcode));
         this->stop();
         break;
     }
 
     pc += 2;
 
+    // Advance the timer; fire a pending interrupt if the period has elapsed.
     registers[TIME]++;
     if (registers[TPER] != 0 && registers[TIME] == registers[TPER])
     {
@@ -293,6 +318,7 @@ void virt16::step()
         timer_pending = true;
     }
 
+    // Dispatch the highest-priority pending interrupt if interrupts are enabled.
     if (i)
     {
         if (timer_pending)
@@ -322,16 +348,14 @@ void virt16::load_program(const char* program) noexcept
     std::ifstream file(program, std::ios::binary);
     if (!file.is_open())
     {
-        std::cerr << "failed to open file: " << program << "\n";
+        fprintf(stderr, "failed to open file: %s\n", program);
         return;
     }
 
     unsigned short address = 0;
     unsigned short word;
     while (file.read(reinterpret_cast<char*>(&word), sizeof(word)))
-    {
         memory[address++] = word;
-    }
 }
 
 void virt16::start()
@@ -344,10 +368,8 @@ void virt16::run_for_steps(unsigned int max_steps)
     if (!running)
         return;
 
-    for (unsigned int i = 0; i < max_steps && running; ++i)
-    {
+    for (unsigned int n = 0; n < max_steps && running; ++n)
         step();
-    }
 }
 
 bool virt16::is_running() const
