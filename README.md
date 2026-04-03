@@ -2,6 +2,14 @@
 
 The Virt16 is a virtual 16-bit computer that is designed to be simple and easy to understand.
 
+**3D Cube Rendering Example:**
+![Virt16 Cube Demo](docs/cube.mov)
+
+**Memory Visualizer and Display Output:**
+| Memory Map Layout | Video Buffer Output |
+| :---: | :---: |
+| ![Memory Map](docs/memory.png) | ![Test Pattern](docs/test.png) |
+
 ## Architecture
 - **Word size**: 16 bits (2 bytes)
 - **Memory size**: 128KB (65,536 words × 2 bytes)
@@ -152,4 +160,7 @@ Example Macro:
 - **Font Address**: 0x3100 (Font should be loaded here)
 - **Console Interaction Memory**: Starts at 0x2900
 
+#### Acknowledgements
+
+This project incorporates portions of the [Dear ImGui](https://github.com/ocornut/imgui) library and the [imgui_memory_editor](https://github.com/ocornut/imgui_club/blob/main/imgui_memory_editor/imgui_memory_editor.h). We would like to express our gratitude to Omar Cornut and all ImGui contributors for providing these excellent tools for the development community.
 
