@@ -3,12 +3,13 @@
 The Virt16 is a virtual 16-bit computer that is designed to be simple and easy to understand.
 
 **3D Cube Rendering Example:**
-![Virt16 Cube Demo](docs/cube.mov)
+
+https://github.com/user-attachments/assets/cc7e20fe-586b-46b8-ade4-8f97befdafab
 
 **Memory Visualizer and Display Output:**
-| Memory Map Layout | Video Buffer Output |
+| Memory Map | Console Mode |
 | :---: | :---: |
-| ![Memory Map](docs/memory.png) | ![Test Pattern](docs/test.png) |
+| ![Memory Map](docs/memory.png) | ![Instruction Testbench](docs/test.png) |
 
 ## Architecture
 - **Word size**: 16 bits (2 bytes)
