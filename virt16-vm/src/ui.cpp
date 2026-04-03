@@ -8,7 +8,6 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -63,7 +62,8 @@ static std::string run_command_capture(const char* command)
 static std::string browse_for_rom_path()
 {
 #if defined(__APPLE__)
-    return run_command_capture("osascript -e 'POSIX path of (choose file with prompt \"Select a ROM (.bin)\")' 2>/dev/null");
+    return run_command_capture(
+        "osascript -e 'POSIX path of (choose file with prompt \"Select a ROM (.bin)\")' 2>/dev/null");
 #elif defined(__linux__)
     std::string path = run_command_capture("zenity --file-selection --title='Select ROM (.bin)' 2>/dev/null");
     if (!path.empty())
@@ -133,11 +133,14 @@ void render_load_rom_tab(Virt16::virt16* vm, AppState& state)
 void render_memory_viewer_tab(Virt16::virt16* vm)
 {
     static MemoryEditor mem_edit;
-    mem_edit.Cols = 16;
+    mem_edit.Cols = 32;
     mem_edit.OptShowOptions = true;
     mem_edit.OptShowDataPreview = true;
     mem_edit.OptShowAscii = true;
     mem_edit.ReadOnly = false;
+    mem_edit.PreviewEndianness = 1;
+    mem_edit.PreviewDataType = ImGuiDataType_U16;
+    mem_edit.HighlightColor = IM_COL32(246, 190, 0, 50); // Dark Yellow
     mem_edit.DrawContents(vm->memory, sizeof(vm->memory));
 }
 
@@ -382,7 +385,7 @@ static void render_hex_keyboard(Virt16::virt16* vm)
 /// @param debug_info one assembled instruction string per index
 static void render_debug_panel(Virt16::virt16* vm, const std::vector<std::string>& debug_info)
 {
-    ImGui::BeginChild("DebugInfo", ImVec2(0, 300), ImGuiChildFlags_Borders);
+    ImGui::BeginChild("DebugInfo", ImVec2(0, ImGui::GetContentRegionAvail().y), ImGuiChildFlags_Borders);
     ImGui::SeparatorText("Debug Trace");
     ImGui::Text("PC: 0x%04X", vm->pc);
 
