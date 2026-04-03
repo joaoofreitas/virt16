@@ -35,26 +35,96 @@ static void load_debug_info(const char* bin_path, std::vector<std::string>& out)
         out.push_back(line);
 }
 
+/// Executes a shell command and returns stdout trimmed of trailing whitespace.
+/// @param command shell command to execute
+/// @return command stdout (empty string on failure)
+static std::string run_command_capture(const char* command)
+{
+    FILE* pipe = popen(command, "r");
+    if (!pipe)
+        return "";
+
+    std::string result;
+    char buffer[256];
+    while (fgets(buffer, sizeof(buffer), pipe))
+        result += buffer;
+    pclose(pipe);
+
+    while (!result.empty() && (result.back() == '\n' || result.back() == '\r' || result.back() == ' '))
+        result.pop_back();
+
+    return result;
+}
+
+/// Opens a platform-specific file picker and returns a selected ROM path.
+/// macOS: osascript chooser. Linux: zenity, then kdialog fallback.
+/// @return absolute file path or empty string if cancelled/unavailable
+static std::string browse_for_rom_path()
+{
+#if defined(__APPLE__)
+    return run_command_capture("osascript -e 'POSIX path of (choose file with prompt \"Select a ROM (.bin)\")' 2>/dev/null");
+#elif defined(__linux__)
+    std::string path = run_command_capture("zenity --file-selection --title='Select ROM (.bin)' 2>/dev/null");
+    if (!path.empty())
+        return path;
+    return run_command_capture("kdialog --getopenfilename 2>/dev/null");
+#else
+    return "";
+#endif
+}
+
 void render_load_rom_tab(Virt16::virt16* vm, AppState& state)
 {
     static char file_path[256] = "";
 
-    // Center the controls vertically in the tab
-    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (ImGui::GetContentRegionAvail().y - 100.0f) / 2.0f);
-    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 180.0f);
+    ImGui::SeparatorText("ROM Loader");
+    ImGui::TextDisabled("Select a .bin file to load into VM memory.");
+    ImGui::Spacing();
 
-    ImGui::InputText("ROM File Path", file_path, sizeof(file_path));
-
-    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 180.0f);
-    if (ImGui::Button("Load ROM") && file_path[0] != '\0')
+    ImGui::SetNextItemWidth(520.0f);
+    ImGui::InputText("ROM Path", file_path, sizeof(file_path));
+    ImGui::SameLine();
+    if (ImGui::Button("Browse..."))
     {
-        vm->load_program(file_path);
-        load_debug_info(file_path, state.debug_info);
+        const std::string selected = browse_for_rom_path();
+        if (!selected.empty())
+        {
+            std::snprintf(file_path, sizeof(file_path), "%s", selected.c_str());
+        }
     }
 
-    if (file_path[0] == '\0')
+    if (ImGui::Button("Load ROM", ImVec2(160.0f, 0.0f)) && file_path[0] != '\0')
     {
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 180.0f);
+        std::ifstream file(file_path, std::ios::binary);
+        if (!file.is_open())
+        {
+            state.rom_load_ok = false;
+            state.rom_status = "Failed to open ROM file.";
+            return;
+        }
+
+        vm->load_program(file_path);
+        load_debug_info(file_path, state.debug_info);
+        state.rom_load_ok = true;
+        state.rom_status = "ROM loaded successfully.";
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Clear", ImVec2(120.0f, 0.0f)))
+    {
+        file_path[0] = '\0';
+        state.rom_status.clear();
+    }
+
+    ImGui::Spacing();
+    if (!state.rom_status.empty())
+    {
+        const ImVec4 ok_col(0.35f, 0.90f, 0.45f, 1.0f);
+        const ImVec4 err_col(0.95f, 0.40f, 0.40f, 1.0f);
+        ImGui::TextColored(state.rom_load_ok ? ok_col : err_col, "%s", state.rom_status.c_str());
+    }
+    else if (file_path[0] == '\0')
+    {
         ImGui::TextDisabled("No file selected");
     }
 }

@@ -11,6 +11,8 @@ struct AppState
     std::vector<std::string> debug_info; // one entry per assembled instruction, used by the debug panel
     bool graphics_mode = false;          // false = console (text), true = graphics (pixel)
     bool auto_run = false;               // true = execute VM continuously in per-frame timeslices
+    std::string rom_status;              // status text shown in the ROM loader tab
+    bool rom_load_ok = false;            // true when the most recent ROM load succeeded
 };
 
 /// Renders the "Load ROM" tab: file path input, load button, and status text.
