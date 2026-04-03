@@ -1,4 +1,4 @@
-# Architecture of the Virt16
+# Virt16 - A 16 bit toy computer
 
 The Virt16 is a virtual 16-bit computer that is designed to be simple and easy to understand.
 
