@@ -31,10 +31,10 @@
 #define PUSH 0x17
 #define POP 0x18
 #define HLT 0x19
-#define NOP  0x1A
-#define JC   0x1B
-#define EI   0x1C
-#define DI   0x1D
+#define NOP 0x1A
+#define JC 0x1B
+#define EI 0x1C
+#define DI 0x1D
 #define RETI 0x1E
 
 // Instruction field extraction helpers.
@@ -280,6 +280,7 @@ void virt16::step()
 
     default:
         std::cerr << "invalid opcode: 0x" << std::hex << static_cast<int>(opcode) << "\n";
+        this->stop();
         break;
     }
 
@@ -333,13 +334,25 @@ void virt16::load_program(const char* program) noexcept
     }
 }
 
-void virt16::run()
+void virt16::start()
 {
     running = true;
-    while (running)
+}
+
+void virt16::run_for_steps(unsigned int max_steps)
+{
+    if (!running)
+        return;
+
+    for (unsigned int i = 0; i < max_steps && running; ++i)
     {
         step();
     }
+}
+
+bool virt16::is_running() const
+{
+    return running;
 }
 
 void virt16::stop()

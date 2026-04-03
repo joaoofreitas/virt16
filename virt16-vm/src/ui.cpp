@@ -124,19 +124,28 @@ void render_memory_viewer_tab(Virt16::virt16* vm)
 
 /// Renders the control buttons (Step / Reset / Run / Stop) for the VM.
 /// @param vm the running VM instance
-static void render_control_buttons(Virt16::virt16* vm)
+static void render_control_buttons(Virt16::virt16* vm, AppState& state)
 {
     if (ImGui::Button("Step"))
         vm->step();
     ImGui::SameLine();
     if (ImGui::Button("Reset"))
+    {
         vm->reset();
+        state.auto_run = false;
+    }
     ImGui::SameLine();
     if (ImGui::Button("Run"))
-        vm->run();
+    {
+        vm->start();
+        state.auto_run = true;
+    }
     ImGui::SameLine();
     if (ImGui::Button("Stop"))
+    {
         vm->stop();
+        state.auto_run = false;
+    }
 }
 
 /// Renders an editable table of all 27 general-purpose and special registers.
@@ -198,10 +207,10 @@ static void render_flags(Virt16::virt16* vm)
 
 /// Renders the left register panel (buttons, register table, flags).
 /// @param vm the running VM instance
-static void render_register_panel(Virt16::virt16* vm)
+static void render_register_panel(Virt16::virt16* vm, AppState& state)
 {
     ImGui::BeginChild("RegisterPanel", ImVec2(200, 0), ImGuiChildFlags_Borders);
-    render_control_buttons(vm);
+    render_control_buttons(vm, state);
     render_register_table(vm);
     render_flags(vm);
     ImGui::EndChild();
@@ -384,7 +393,15 @@ static void render_right_panel(Virt16::virt16* vm, const std::vector<std::string
 
 void render_monitor_tab(Virt16::virt16* vm, AppState& state)
 {
-    render_register_panel(vm);
+    // Cooperative execution keeps the UI responsive even for long/infinite programs.
+    if (state.auto_run)
+    {
+        vm->run_for_steps(5000);
+        if (!vm->is_running())
+            state.auto_run = false;
+    }
+
+    render_register_panel(vm, state);
     ImGui::SameLine();
     render_display_panel(vm, state.graphics_mode);
     ImGui::SameLine();

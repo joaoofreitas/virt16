@@ -92,8 +92,16 @@ class virt16
     /// @param program path to the .bin file
     void load_program(const char* program) noexcept;
 
-    /// Runs the VM in a blocking loop until HLT or stop() is called.
-    void run();
+    /// Starts continuous execution mode without blocking the caller.
+    void start();
+
+    /// Executes up to max_steps while in continuous execution mode.
+    /// @param max_steps maximum instructions to execute this call
+    void run_for_steps(unsigned int max_steps);
+
+    /// Returns whether continuous execution mode is active.
+    /// @return true if the VM is currently running
+    bool is_running() const;
 
     /// Signals the VM to stop after the current step completes.
     void stop();
