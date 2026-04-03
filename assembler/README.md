@@ -24,24 +24,7 @@ python3 assemble.py hello.asm   # console "Hello World!" demo
 python3 assemble.py test.asm    # instruction set test suite
 ```
 
-### test.asm expected results
-
-Load `build/test.bin` in the VM and run it. In the Memory Viewer, visit address `0x0200`:
-
-| Address | Expected | What it tests |
-|---------|----------|---------------|
-| `0x0200` | `0x0010` | ADD (5+3=8), doubled via CALL/RET subroutine |
-| `0x0201` | `0x0002` | SUB (5-3=2) |
-| `0x0202` | `0xABCD` | PUSH/POP round-trip |
-| `0x0203` | `0xBEEF` | Success marker — only written if CMP+JG and CALL+RET all executed correctly |
-
-If the VM halts before `0xBEEF` appears at `0x0203`, the conditional jump or subroutine failed.
-
-### hello.asm expected results
-
-Load `build/hello.bin` in the VM. In the Monitor tab, switch to **Console** mode. "Hello World!" should appear on the top row of the 16×16 character grid.
-
-## Assembly language reference
+## Assembly language reference for the Virt16
 
 ### Syntax
 
