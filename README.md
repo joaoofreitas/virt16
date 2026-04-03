@@ -53,12 +53,7 @@ https://github.com/user-attachments/assets/cc7e20fe-586b-46b8-ade4-8f97befdafab
 - **OPCODE**: 5 bits (0x00 - 0x1F)
 - **REGISTER**: 5 bits (0x00 - 0x17)
 - **IMMEDIATE**: 16 bits (0x0000 - 0xFFFF)
-- **Instruction Sizes**:
-  - 20 bits: ADD/SUB/MUL/DIV/MOD/AND/OR/XOR/SHL/SHR/CMP
-  - 26 bits: LOAD
-  - 10 bits: INC/DEC/NOT/PUSH/POP/JMP/JZ/JE/JNE/JG/JL/RET
-  - 5 bits: HLT/NOP/RET
-  - 1 Instruction = 2 words (32 bits)
+- **Instruction Size**: every instruction is exactly 2 words (32 bits)
 
 ### Instructions
 - `LOAD X, #imm`: Load immediate value into register X
