@@ -142,6 +142,13 @@ int main(int, char**)
                 render_monitor_tab(&vm, state);
                 ImGui::EndTabItem();
             }
+            // Cooperative execution keeps the UI responsive even for long/infinite programs.
+            if (state.auto_run)
+            {
+                vm.run_for_steps(100000);
+                if (!vm.is_running())
+                    state.auto_run = false;
+            }
             ImGui::EndTabBar();
         }
 

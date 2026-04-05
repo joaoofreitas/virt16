@@ -426,14 +426,6 @@ static void render_right_panel(Virt16::virt16* vm, const std::vector<std::string
 
 void render_monitor_tab(Virt16::virt16* vm, AppState& state)
 {
-    // Cooperative execution keeps the UI responsive even for long/infinite programs.
-    if (state.auto_run)
-    {
-        vm->run_for_steps(100000);
-        if (!vm->is_running())
-            state.auto_run = false;
-    }
-
     render_register_panel(vm, state);
     ImGui::SameLine();
     render_display_panel(vm, state.graphics_mode);
