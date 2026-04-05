@@ -130,14 +130,19 @@ void render_load_rom_tab(Virt16::virt16* vm, AppState& state)
 void render_memory_viewer_tab(Virt16::virt16* vm)
 {
     static MemoryEditor mem_edit;
-    mem_edit.Cols = 32;
-    mem_edit.OptShowOptions = true;
-    mem_edit.OptShowDataPreview = true;
-    mem_edit.OptShowAscii = true;
-    mem_edit.ReadOnly = false;
-    mem_edit.PreviewEndianness = 1;
-    mem_edit.PreviewDataType = ImGuiDataType_U16;
-    mem_edit.HighlightColor = IM_COL32(246, 190, 0, 50); // Dark Yellow
+    static bool initialized = false;
+    if (!initialized) 
+    {
+        mem_edit.Cols = 32;
+        mem_edit.OptShowOptions = true;
+        mem_edit.OptShowDataPreview = true;
+        mem_edit.OptShowAscii = true;
+        mem_edit.ReadOnly = false;
+        mem_edit.PreviewEndianness = 1;
+        mem_edit.PreviewDataType = ImGuiDataType_U16;
+        mem_edit.HighlightColor = IM_COL32(246, 190, 0, 50); // Dark Yellow
+        initialized = true;
+    }
     mem_edit.DrawContents(vm->memory, sizeof(vm->memory));
 }
 
@@ -424,7 +429,7 @@ void render_monitor_tab(Virt16::virt16* vm, AppState& state)
     // Cooperative execution keeps the UI responsive even for long/infinite programs.
     if (state.auto_run)
     {
-        vm->run_for_steps(5000);
+        vm->run_for_steps(100000);
         if (!vm->is_running())
             state.auto_run = false;
     }
